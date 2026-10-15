@@ -11,6 +11,10 @@ export function mockCloud() {
     allowed: true,
     reads: 0,
     writes: 0,
+    authCode: "",
+    recoveryRequests: 0,
+    recoveryRedirect: "",
+    passwordUpdates: 0,
   };
   const user = {
     id: ownerId,
@@ -32,7 +36,9 @@ export function mockCloud() {
     "signature",
   ]
     .map((v, i) =>
-      i === 2 ? v : Buffer.from(JSON.stringify(v)).toString("base64url"),
+      Buffer.from(i === 2 ? String(v) : JSON.stringify(v)).toString(
+        "base64url",
+      ),
     )
     .join(".");
   async function install(context: BrowserContext) {
@@ -45,10 +51,21 @@ export function mockCloud() {
           contentType: "application/json",
           body: JSON.stringify(body),
         });
+      if (url.pathname === "/auth/v1/recover") {
+        backend.recoveryRequests++;
+        backend.recoveryRedirect = url.searchParams.get("redirect_to") || "";
+        return send(200, {});
+      }
       if (url.pathname === "/auth/v1/token") {
+        if (backend.authCode)
+          return send(400, {
+            error_code: backend.authCode,
+            msg: "Test auth error",
+          });
         const input = req.postDataJSON();
         if (input.password === "incorrect")
           return send(400, {
+            error_code: "invalid_credentials",
             error: "invalid_grant",
             error_description: "Invalid login credentials",
           });
@@ -61,7 +78,13 @@ export function mockCloud() {
           user,
         });
       }
-      if (url.pathname === "/auth/v1/user") return send(200, user);
+      if (url.pathname === "/auth/v1/user") {
+        if (req.method() === "PUT") {
+          backend.passwordUpdates++;
+          return send(200, user);
+        }
+        return send(200, user);
+      }
       if (url.pathname === "/auth/v1/logout") return send(200, {});
       if (!req.headers().authorization?.startsWith("Bearer ey"))
         return send(401, { message: "not authenticated" });
@@ -101,7 +124,11 @@ export function mockCloud() {
       });
     });
   }
-  return { backend, install };
+  return {
+    backend,
+    install,
+    recoveryHash: `#access_token=${jwt}&refresh_token=test-recovery-refresh&type=recovery`,
+  };
 }
 export async function login(page: Page) {
   await page.goto("/");

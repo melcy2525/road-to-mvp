@@ -1433,3 +1433,17 @@ input[type="month"] {
   color: #b9c3d2;
   font-size: 12px;
 }
+.auth-link {
+  margin-top: 20px;
+  min-height: 44px;
+  color: var(--gold);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.auth-info {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #b9d4bb;
+  margin: 16px 0;
+}
