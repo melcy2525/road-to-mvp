@@ -1,3 +1,4 @@
+import { z } from "zod";
 export type Event = {
   id: string;
   date: string;
@@ -47,27 +48,6 @@ export const initialData: Data = {
   reviews: [],
   sales: [],
 };
-// Replace this repository with an API adapter when connecting a database.
-export const repository = {
-  load(): Data {
-    const raw = localStorage.getItem("road-to-mvp:v1");
-    if (!raw) return structuredClone(initialData);
-    const data = JSON.parse(raw);
-    if (
-      !data ||
-      !["events", "meetings", "reports", "reviews", "sales"].every((key) =>
-        Array.isArray(data[key]),
-      ) ||
-      !Number.isFinite(data.annual) ||
-      !Number.isFinite(data.monthly)
-    )
-      throw new Error("保存データの形式が正しくありません");
-    return data;
-  },
-  save(data: Data) {
-    localStorage.setItem("road-to-mvp:v1", JSON.stringify(data));
-  },
-};
 export const dateKey = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 export const yen = (n: number) =>
@@ -76,3 +56,91 @@ export const yen = (n: number) =>
     currency: "JPY",
     maximumFractionDigits: 0,
   }).format(n);
+
+const text = z.string().max(5000);
+const id = z.string().uuid();
+const date = z.iso.date();
+const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+const money = z.number().int().nonnegative().max(999999999999);
+export const dataSchema = z.object({
+  annual: money.positive(),
+  monthly: money.positive(),
+  events: z
+    .array(z.object({ id, date, time, title: text, type: text }))
+    .max(10000),
+  meetings: z
+    .array(
+      z.object({
+        id,
+        date,
+        time,
+        title: text,
+        url: z.url().startsWith("https://").max(2048),
+        memo: text,
+      }),
+    )
+    .max(10000),
+  reports: z
+    .array(
+      z.object({
+        id,
+        date,
+        result: text,
+        reflection: text,
+        cause: text,
+        action: text,
+      }),
+    )
+    .max(10000),
+  reviews: z
+    .array(
+      z.object({
+        id,
+        month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
+        result: text,
+        reflection: text,
+        action: text,
+      }),
+    )
+    .max(10000),
+  sales: z
+    .array(z.object({ id, date, title: text, amount: money.positive() }))
+    .max(10000),
+});
+export function parseData(raw: unknown): Data {
+  return dataSchema.parse(raw);
+}
+// Cloud records win on matching IDs (and on report dates / review months).
+// Re-importing the same source is idempotent, including sales totals.
+export function mergeLegacy(
+  cloud: Data,
+  legacy: Data,
+  pristine: boolean,
+): Data {
+  const merge = <T extends { id: string }>(
+    current: T[],
+    incoming: T[],
+    key: (item: T) => string,
+  ) => {
+    const ids = new Set(current.map((item) => item.id));
+    const keys = new Set(current.map(key));
+    return [
+      ...current,
+      ...incoming.filter((item) => {
+        if (ids.has(item.id) || keys.has(key(item))) return false;
+        ids.add(item.id);
+        keys.add(key(item));
+        return true;
+      }),
+    ];
+  };
+  return parseData({
+    annual: pristine ? legacy.annual : cloud.annual,
+    monthly: pristine ? legacy.monthly : cloud.monthly,
+    events: merge(cloud.events, legacy.events, (x) => x.id),
+    meetings: merge(cloud.meetings, legacy.meetings, (x) => x.id),
+    reports: merge(cloud.reports, legacy.reports, (x) => x.date),
+    reviews: merge(cloud.reviews, legacy.reviews, (x) => x.month),
+    sales: merge(cloud.sales, legacy.sales, (x) => x.id),
+  });
+}

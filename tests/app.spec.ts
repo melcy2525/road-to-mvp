@@ -1,3 +1,4 @@
+import { mockCloud, login } from "./helpers/supabase";
 import { test, expect, Page } from "@playwright/test";
 const nav = async (p: Page, name: string) => {
   if (
@@ -15,7 +16,9 @@ test("基本機能: 登録・編集・削除、売上集計、再読み込み後
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto("/");
+  const mock = mockCloud();
+  await mock.install(page.context());
+  await login(page);
   await expect(
     page.getByRole("heading", { name: "一歩ずつ、MVPへ。" }),
   ).toBeVisible();
@@ -95,7 +98,9 @@ test("iPhone幅で6画面に横はみ出しがなく、フォームが操作で�
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  const mock = mockCloud();
+  await mock.install(page.context());
+  await login(page);
   for (const tab of [
     "ホーム",
     "スケジュール",
