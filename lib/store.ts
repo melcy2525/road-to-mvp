@@ -7,6 +7,8 @@ export type Event = {
   type: string;
 };
 export type Meeting = {
+  duration?: number;
+  timezone?: string;
   id: string;
   date: string;
   time: string;
@@ -76,6 +78,8 @@ export const dataSchema = z.object({
         time,
         title: text,
         url: z.url().startsWith("https://").max(2048),
+        duration: z.number().int().positive().optional(),
+        timezone: z.string().optional(),
         memo: text,
       }),
     )

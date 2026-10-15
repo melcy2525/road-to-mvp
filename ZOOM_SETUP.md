@@ -1,0 +1,58 @@
+# Zoom会議の自動発行
+
+## 使い方
+
+ログイン後 **Zoom管理 → Zoom会議を作成** を押します。タイトル・日付・時刻・所要時間・時間帯・メモを入力し、**作成してリンクを発行** を押すと、Zoom会議を作成して参加用リンクをSupabaseに保存します。初期時間帯は端末の設定（日本では通常Asia/Tokyo）です。メモはZoomの会議説明にも送信されます。
+
+発行後はリンクをコピーできます。別端末にもクラウド同期されます。既存リンクの手動登録も引き続き利用できます。
+
+## 初回設定（iPhone）
+
+ZoomのServer-to-Server OAuthアプリは **Active** にし、Scopesで **Create a meeting / `meeting:write:meeting:admin`** を許可してください。
+
+Vercelの **ROAD TO MVP → Settings → Environment Variables** に次を登録します。既にProductionへ保存済みなら再登録不要です。
+
+| 名前                 | 値                        |
+| -------------------- | ------------------------- |
+| `ZOOM_ACCOUNT_ID`    | ZoomアプリのAccount ID    |
+| `ZOOM_CLIENT_ID`     | ZoomアプリのClient ID     |
+| `ZOOM_CLIENT_SECRET` | ZoomアプリのClient Secret |
+
+`NEXT_PUBLIC_`は付けません。これらはサーバーだけが使います。値をチャット・Git・スクリーンショットへ載せないでください。
+
+会議ホストの指定は通常不要です。既定は `me` です。Zoomアカウントの運用上、ホストを明示する必要がある場合だけ、同じZoomアカウントに所属するユーザーのメールアドレスまたはユーザーIDを `ZOOM_HOST_USER_ID` に設定し、再デプロイします。
+
+### 追加SQL（今回必要な操作）
+
+1. Supabaseの `road-to-mvp` を開き、**SQL Editor → New query** を押します。
+2. GitHubの `supabase/migrations/202610150002_zoom_requests.sql` を開き、**Raw** 表示からSQL全文をコピーします。
+3. SQL Editorへ貼り付け、**Run** を押します。既存の001が適用済みの場合、今回実行するのは **002だけ** です。成功後は再実行不要です。
+4. Vercelの最新デプロイが **Ready** になったらアプリを再読み込みします。変数をデプロイ後に追加した場合は **Deployments → … → Redeploy** が必要です。
+5. ログインして **Zoom管理 → Zoom会議を作成** でテスト用会議を1件発行し、リンクのコピー・再読み込み後の表示・Zoomアプリの会議一覧を確認します。
+
+新規環境では001→002の順でマイグレーションを適用します。001の所有者登録も必要です。ユーザーや既存データを削除するSQLではありません。
+
+## 保存・再試行
+
+`zoom_requests`は発行リクエストの記録です。所有者だけにRLSを適用します。`save_zoom_meeting`はRLSを維持したまま会議リンクを既存ワークスペースへ追加するトランザクションです。他の端末の更新を上書きせず、同じリクエストの保存は重複しません。service_roleキーは不要です。
+
+- 作成済みで保存だけ失敗した場合は **クラウド保存を再試行** を押します。Zoom会議は再発行しません。発行記録が保存されていれば、次回のクラウド読み込みでも保存を再試行します。
+- 会議は作成できたが発行記録も保存できなかった場合は、表示されたリンクをコピーし **リンクを手動登録** を使います。ブラウザへの代替保存は行いません。
+- 通信中断などで作成結果が不明な場合は **同じリクエストの結果を確認** を使います。サーバーに処理中・結果不明の記録がある場合は再発行しません。Zoomアプリで会議の有無を確認してから次の操作をしてください。
+- 入力内容を変えて発行する場合は、結果を確認したうえで閉じて新規作成します。
+
+アプリ内の登録情報の編集・削除は、Zoom上の会議の変更・キャンセルは行いません。発行後の日時変更・中止はZoomアプリで操作してください。Zoom側の利用プランやアカウントの制限も適用されます。
+
+## 開発・検証
+
+`.env.example`に必要な変数名を記載しています。APIは固定のZoom HTTPSエンドポイントだけを呼び、認証トークン・Client Secret・ホスト専用start_urlをブラウザへ返しません。リクエストのたびにSupabaseでJWTとapp_ownerを確認します。
+
+```sh
+npm run test:server
+npm run test:rls
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e
+npm run build
+npm run typecheck
+```
+
+サーバーテストはZoomとSupabaseのHTTP応答をモックして検証します。RLSテストは使い捨てPostgreSQLを使用します。実際のZoom会議や本番データは作成しません。実アカウントでの発行成功は、Vercelへの設定・SQL適用・本番確認が済むまで未確認です。

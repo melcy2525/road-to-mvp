@@ -32,6 +32,25 @@ export function createRepository(client: SupabaseClient, userId: string) {
         throw new CloudError(
           "クラウドを初期化できません。SQL・所有者設定・通信状態を確認してください。",
         );
+      // Recover links already issued by Zoom if the previous browser closed
+      // before workspace persistence completed. Missing migration 002 must not
+      // block the existing dashboard; Zoom creation reports that requirement.
+      const pending = await client
+        .from("zoom_requests")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("status", "ready")
+        .limit(10)
+        .retry(false)
+        .abortSignal(AbortSignal.timeout(15000));
+      if (!pending.error && pending.data) {
+        for (const request of pending.data) {
+          const saved = await client
+            .rpc("save_zoom_meeting", { p_request_id: request.id })
+            .abortSignal(AbortSignal.timeout(15000));
+          if (saved.error) break;
+        }
+      }
       const result = await client
         .from("workspaces")
         .select("state,revision")

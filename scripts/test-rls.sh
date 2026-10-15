@@ -20,6 +20,9 @@ create function auth.uid() returns uuid language sql stable as $$ select nullif(
 grant usage on schema auth to anon, authenticated;
 grant usage on schema public to anon, authenticated;
 SQL
-docker exec -i "$container_name" psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/202610150001_private_workspace.sql
+for migration in supabase/migrations/*.sql; do
+  docker exec -i "$container_name" psql -U postgres -v ON_ERROR_STOP=1 < "$migration"
+done
 docker exec -i "$container_name" psql -U postgres -v ON_ERROR_STOP=1 < supabase/tests/rls.sql
+docker exec -i "$container_name" psql -U postgres -v ON_ERROR_STOP=1 < supabase/tests/zoom.sql
 printf 'RLS tests passed (owner / other user / anonymous / revision conflict).\n'

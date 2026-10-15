@@ -1447,3 +1447,62 @@ input[type="month"] {
   color: #b9d4bb;
   margin: 16px 0;
 }
+.zoom-create-container {
+  margin-bottom: 22px;
+}
+.zoom-create-panel form,
+.zoom-result {
+  padding: 20px;
+}
+.zoom-create-panel > .helper {
+  padding: 14px 20px;
+}
+.zoom-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 17px;
+}
+.zoom-form-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  color: #b9c3d2;
+  min-width: 0;
+}
+.zoom-message {
+  margin: 0 20px 18px;
+  color: var(--gold);
+  font-size: 12px;
+  line-height: 1.9;
+  white-space: pre-wrap;
+}
+.zoom-retry {
+  margin: 0 20px 15px;
+}
+.zoom-result {
+  padding-top: 0;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.zoom-result .meeting-url {
+  width: 100%;
+  margin: 0 0 5px;
+}
+@media (max-width: 550px) {
+  .zoom-create-panel input,
+  .zoom-create-panel textarea {
+    font-size: 16px;
+  }
+  .zoom-form-row {
+    gap: 10px;
+  }
+  .zoom-create-panel .section-title {
+    flex-wrap: wrap;
+  }
+  .zoom-result button {
+    width: 100%;
+  }
+}

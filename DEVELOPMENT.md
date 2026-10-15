@@ -41,3 +41,5 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e
 ```
 
 テストは専用のビルドディレクトリとポート3100/3101を使います。モック用URL/公開キーはテスト子プロセスにだけ渡し、本番ビルド・環境変数へ保存しません。`.next` は本番用に保持します。RLSの使い捨てDB検証は `scripts/test-rls.sh` を参照してください。
+
+Zoom会議の自動発行は [ZOOM_SETUP.md](ZOOM_SETUP.md) を参照してください。サーバー処理は `npm run test:server`、追加テーブルと保存関数のRLSは `npm run test:rls` で検証できます。Zoomの3つの認証情報はサーバー専用です。

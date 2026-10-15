@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import {
   ArrowUpRight,
   CalendarDays,
@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Data, dateKey, initialData, mergeLegacy, yen } from "@/lib/store";
 import { useAuth } from "@/components/auth-gate";
+import ZoomCreate from "@/components/zoom-create";
 import LegacyImport from "@/components/legacy-import";
 import { createRepository } from "@/lib/cloud";
 const tabs = [
@@ -59,6 +60,10 @@ export default function Page() {
   const [saving, setSaving] = useState(false),
     [syncMessage, setSyncMessage] = useState("接続中…"),
     [lastSynced, setLastSynced] = useState("");
+  const zoomEditing = useRef(false);
+  const onZoomEditing = useCallback((value: boolean) => {
+    zoomEditing.current = value;
+  }, []);
   editing.current = !!form;
   useEffect(() => {
     const now = dateKey(new Date());
@@ -96,7 +101,11 @@ export default function Page() {
     };
     queueMicrotask(() => void sync());
     const refresh = () => {
-      if (!editing.current && document.visibilityState === "visible")
+      if (
+        !editing.current &&
+        !zoomEditing.current &&
+        document.visibilityState === "visible"
+      )
         void sync();
     };
     const timer = setInterval(refresh, 15000);
@@ -258,6 +267,7 @@ export default function Page() {
       next.meetings = [
         ...data.meetings.filter((x) => x.id !== id),
         {
+          ...data.meetings.find((meeting) => meeting.id === id),
           id,
           date: v.date,
           time: v.time,
@@ -772,6 +782,24 @@ export default function Page() {
               )}
               {tab === "Zoom管理" && (
                 <>
+                  <div className="zoom-create-container">
+                    <ZoomCreate
+                      onSaved={reload}
+                      onManual={(meeting) =>
+                        open(
+                          "Zoom",
+                          Object.fromEntries(
+                            Object.entries(meeting).map(([k, v]) => [
+                              k,
+                              String(v),
+                            ]),
+                          ),
+                          meeting.id,
+                        )
+                      }
+                      onEditingChange={onZoomEditing}
+                    />
+                  </div>
                   <div className="list-heading">
                     <h2>
                       ミーティング{" "}
@@ -795,6 +823,8 @@ export default function Page() {
                         <h2>{m.title}</h2>
                         <p>
                           {m.date} · {m.time}
+                          {m.duration ? " · " + m.duration + "分" : ""}
+                          {m.timezone ? " / " + m.timezone : ""}
                         </p>
                         <p className="pre-wrap">{m.memo}</p>
                         <div className="meeting-url">{m.url}</div>

@@ -88,6 +88,7 @@ export function mockCloud() {
       if (url.pathname === "/auth/v1/logout") return send(200, {});
       if (!req.headers().authorization?.startsWith("Bearer ey"))
         return send(401, { message: "not authenticated" });
+      if (url.pathname === "/rest/v1/zoom_requests") return send(200, []);
       if (url.pathname === "/rest/v1/app_owner")
         return send(200, backend.allowed ? [{ user_id: ownerId }] : []);
       if (url.pathname === "/rest/v1/workspaces") {
