@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { mockCloud, login } from "./helpers/supabase";
+// A device timezone outside Japan must not change Zoom input semantics.
+test.use({ timezoneId: "America/Los_Angeles" });
 test("iPhoneでZoom自動発行し、クラウド再読み込み後もリンクをコピーできる", async ({
   page,
 }) => {
@@ -40,6 +42,9 @@ test("iPhoneでZoom自動発行し、クラウド再読み込み後もリンク�
   await page
     .getByLabel("会議のタイトル", { exact: true })
     .fill("自動発行テスト");
+  await expect(
+    page.getByLabel("時間帯（日本時間）", { exact: true }),
+  ).toHaveValue("Asia/Tokyo");
   await page
     .getByRole("button", { name: "作成してリンクを発行", exact: true })
     .click();
@@ -171,4 +176,81 @@ test("前回発行済みで保存待ちのリンクは次のログイン時に�
     "前回の作成済み会議",
   );
   expect(pending).toBe(false);
+});
+test("Zoomがホーム・日週月に表示され、編集・削除が連動する", async ({
+  page,
+}) => {
+  const mock = mockCloud();
+  await mock.install(page.context());
+  await login(page);
+  // The date comes from the app, independent of the execution host timezone.
+  const today = await page.locator(".date-chip").textContent();
+  expect(today).toBeTruthy();
+  const date = await page.evaluate(() =>
+    new Intl.DateTimeFormat("sv-SE", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date()),
+  );
+  mock.backend.state.meetings = [
+    {
+      id: "55555555-5555-4555-8555-555555555555",
+      date,
+      time: "10:30",
+      title: "連動するZoom商談",
+      url: "https://zoom.us/j/1122334455",
+      memo: "議題",
+      duration: 60,
+      timezone: "Asia/Tokyo",
+    },
+  ];
+  mock.backend.revision++;
+  await page
+    .getByRole("button", { name: "最新を読み込む", exact: true })
+    .click();
+  await expect(page.locator(".event-row")).toContainText("10:30");
+  await expect(page.locator(".event-row")).toContainText("連動するZoom商談");
+  await page
+    .locator(".event-row")
+    .getByRole("button", { name: "編集", exact: true })
+    .click();
+  await expect(page.getByLabel("会議リンク")).toHaveValue(
+    "https://zoom.us/j/1122334455",
+  );
+  await page.getByRole("button", { name: "キャンセル", exact: true }).click();
+  await page
+    .locator("nav")
+    .getByRole("button", { name: "スケジュール", exact: true })
+    .click();
+  for (const view of ["日", "週", "月"]) {
+    await page.getByRole("button", { name: view, exact: true }).click();
+    await expect(page.locator(".calendar-event")).toHaveCount(1);
+    await expect(page.locator(".calendar-event")).toContainText(
+      "Zoom · 連動するZoom商談",
+    );
+  }
+  await page.locator(".calendar-event").click();
+  await expect(page.getByLabel("会議リンク")).toHaveValue(
+    "https://zoom.us/j/1122334455",
+  );
+  await page.getByLabel("タイトル", { exact: true }).fill("編集後のZoom商談");
+  await page.getByRole("button", { name: "保存する", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.locator(".calendar-event")).toContainText(
+    "編集後のZoom商談",
+  );
+  expect(mock.backend.state.events).toHaveLength(0);
+  await page.reload();
+  await page
+    .locator("nav")
+    .getByRole("button", { name: "スケジュール", exact: true })
+    .click();
+  await expect(page.locator(".calendar-event")).toHaveCount(1);
+  await page.locator(".calendar-event").click();
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "削除", exact: true }).click();
+  await expect(page.locator(".calendar-event")).toHaveCount(0);
+  expect(mock.backend.state.meetings).toHaveLength(0);
 });

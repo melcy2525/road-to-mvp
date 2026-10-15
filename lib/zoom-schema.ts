@@ -5,17 +5,7 @@ export const zoomRequestSchema = z.object({
   date: z.iso.date(),
   time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   duration: z.number().int().min(15).max(480),
-  timezone: z
-    .string()
-    .max(100)
-    .refine((value) => {
-      try {
-        new Intl.DateTimeFormat("ja-JP", { timeZone: value });
-        return true;
-      } catch {
-        return false;
-      }
-    }, "Invalid timezone"),
+  timezone: z.literal("Asia/Tokyo"),
   memo: z.string().max(5000).default(""),
 });
 export type ZoomRequest = z.infer<typeof zoomRequestSchema>;
@@ -28,4 +18,5 @@ export const zoomMeetingSchema = z.object({
   memo: z.string(),
   duration: z.number().int().positive().optional(),
   timezone: z.string().optional(),
+  startsAt: z.iso.datetime({ offset: true }).optional(),
 });

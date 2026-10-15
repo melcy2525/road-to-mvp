@@ -7,6 +7,7 @@ export type Event = {
   type: string;
 };
 export type Meeting = {
+  startsAt?: string;
   duration?: number;
   timezone?: string;
   id: string;
@@ -80,6 +81,7 @@ export const dataSchema = z.object({
         url: z.url().startsWith("https://").max(2048),
         duration: z.number().int().positive().optional(),
         timezone: z.string().optional(),
+        startsAt: z.iso.datetime({ offset: true }).optional(),
         memo: text,
       }),
     )
@@ -147,4 +149,20 @@ export function mergeLegacy(
     reviews: merge(cloud.reviews, legacy.reviews, (x) => x.month),
     sales: merge(cloud.sales, legacy.sales, (x) => x.id),
   });
+}
+
+export type ScheduleEvent = Event & { meetingId?: string };
+// A single source of truth: no duplicated calendar records to become stale.
+export function scheduleEvents(data: Data): ScheduleEvent[] {
+  return [
+    ...data.events,
+    ...data.meetings.map((meeting) => ({
+      id: "zoom-" + meeting.id,
+      meetingId: meeting.id,
+      date: meeting.date,
+      time: meeting.time,
+      title: meeting.title,
+      type: "Zoom",
+    })),
+  ];
 }

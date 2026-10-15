@@ -21,8 +21,16 @@ import {
   Check,
   TrendingUp,
 } from "lucide-react";
-import { Data, dateKey, initialData, mergeLegacy, yen } from "@/lib/store";
+import {
+  Data,
+  dateKey,
+  initialData,
+  mergeLegacy,
+  scheduleEvents,
+  yen,
+} from "@/lib/store";
 import { useAuth } from "@/components/auth-gate";
+import { zoomTimeInJapan } from "@/lib/zoom-time";
 import ZoomCreate from "@/components/zoom-create";
 import LegacyImport from "@/components/legacy-import";
 import { createRepository } from "@/lib/cloud";
@@ -66,7 +74,7 @@ export default function Page() {
   }, []);
   editing.current = !!form;
   useEffect(() => {
-    const now = dateKey(new Date());
+    const now = zoomTimeInJapan(new Date().toISOString()).date;
     setToday(now);
     setCursor(now);
     setMonth(now.slice(0, 7));
@@ -307,7 +315,8 @@ export default function Page() {
     if (await save(next)) setForm(null);
   }
 
-  const dayEvents = data.events
+  const scheduledEvents = scheduleEvents(data);
+  const dayEvents = scheduledEvents
     .filter((e) => e.date === today)
     .sort((a, b) => a.time.localeCompare(b.time));
   const go = (name: string) => {
@@ -617,7 +626,15 @@ export default function Page() {
                               <strong>{e.title}</strong>
                               <small>{e.type}</small>
                             </div>
-                            {editButtons("予定", "events", e)}
+                            {e.meetingId
+                              ? editButtons(
+                                  "Zoom",
+                                  "meetings",
+                                  data.meetings.find(
+                                    (m) => m.id === e.meetingId,
+                                  )!,
+                                )
+                              : editButtons("予定", "events", e)}
                           </div>
                         ))
                       ) : (
@@ -759,16 +776,35 @@ export default function Page() {
                           >
                             {d.getDate()}
                           </button>
-                          {data.events
+                          {scheduledEvents
                             .filter((e) => e.date === key)
                             .sort((a, b) => a.time.localeCompare(b.time))
                             .map((e) => (
                               <button
                                 className="calendar-event"
                                 key={e.id}
-                                onClick={() => open("予定", { ...e }, e.id)}
+                                onClick={() => {
+                                  const meeting = e.meetingId
+                                    ? data.meetings.find(
+                                        (m) => m.id === e.meetingId,
+                                      )
+                                    : undefined;
+                                  if (meeting)
+                                    open(
+                                      "Zoom",
+                                      Object.fromEntries(
+                                        Object.entries(meeting).map(
+                                          ([k, v]) => [k, String(v)],
+                                        ),
+                                      ),
+                                      meeting.id,
+                                    );
+                                  else open("予定", { ...e }, e.id);
+                                }}
                               >
-                                <time>{e.time}</time> {e.title}
+                                <time>{e.time}</time>{" "}
+                                {e.meetingId ? "Zoom · " : ""}
+                                {e.title}
                               </button>
                             ))}
                         </div>
@@ -776,7 +812,7 @@ export default function Page() {
                     })}
                   </div>
                   <p className="helper">
-                    日付を押すと追加、予定を押すと編集・削除できます。
+                    日付を押すと追加、予定を押すと編集・削除できます。Zoom管理の会議も自動表示します。
                   </p>
                 </section>
               )}

@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Plus, Video, Copy } from "lucide-react";
+import { zoomTimeInJapan } from "@/lib/zoom-time";
 import { useAuth } from "./auth-gate";
-import { dateKey, type Meeting } from "@/lib/store";
+import { type Meeting } from "@/lib/store";
 import {
   zoomMeetingSchema,
   zoomRequestSchema,
@@ -174,7 +175,7 @@ export default function ZoomCreate({
                 type="date"
                 name="date"
                 required
-                defaultValue={dateKey(new Date())}
+                defaultValue={zoomTimeInJapan(new Date().toISOString()).date}
               />
             </label>
             <label>
@@ -200,13 +201,15 @@ export default function ZoomCreate({
               <input
                 name="timezone"
                 required
-                defaultValue={
-                  Intl.DateTimeFormat().resolvedOptions().timeZone ||
-                  "Asia/Tokyo"
-                }
+                value="Asia/Tokyo"
+                readOnly
+                aria-label="時間帯（日本時間）"
               />
             </label>
           </div>
+          <p className="helper">
+            日時は日本時間（JST）で入力してください。Zoomにも同じ日時で登録します。
+          </p>
           <label>
             メモ
             <textarea name="memo" maxLength={5000} />

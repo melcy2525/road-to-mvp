@@ -1,3 +1,4 @@
+import { japanTimeToUtc, zoomTimeInJapan } from "./zoom-time.ts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   zoomRequestSchema,
@@ -220,7 +221,7 @@ export function createZoomHandler(options: Options) {
             body: JSON.stringify({
               topic: input.title,
               type: 2,
-              start_time: input.date + "T" + input.time + ":00",
+              start_time: japanTimeToUtc(input.date, input.time),
               duration: input.duration,
               timezone: input.timezone,
               agenda: input.memo,
@@ -261,15 +262,26 @@ export function createZoomHandler(options: Options) {
         });
       }
       const url = (payload as { join_url?: unknown })?.join_url;
+      let actualTime;
+      try {
+        actualTime = zoomTimeInJapan(
+          (payload as { start_time?: unknown })?.start_time,
+        );
+      } catch {
+        await status("unknown");
+        return reply(502, {
+          error:
+            "Zoomの会議日時を確認できません。Zoomアプリの会議一覧をご確認ください。",
+          code: "unknown_result",
+        });
+      }
       const meeting = zoomMeetingSchema.safeParse({
         id: input.requestId,
-        date: input.date,
-        time: input.time,
+        ...actualTime,
         title: input.title,
         url,
         memo: input.memo,
         duration: input.duration,
-        timezone: input.timezone,
       });
       if (!meeting.success) {
         await status("unknown");
