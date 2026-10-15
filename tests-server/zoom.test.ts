@@ -29,7 +29,7 @@ function fixture() {
     rpcFail: false,
     journalFail: false,
     zoomStatus: 201,
-    returnedStart: "2026-12-01T01:00:00Z",
+    returnedStart: undefined as string | undefined,
     networkFail: false,
     migrationMissing: false,
   };
@@ -98,12 +98,14 @@ function fixture() {
     state.zoomCalls++;
     assert.equal(String(url), "https://api.zoom.us/v2/users/me/meetings");
     const body = JSON.parse(String(init?.body));
-    assert.equal(body.start_time, "2026-12-01T01:00:00.000Z");
+    assert.equal(body.start_time, "2026-12-01T10:00:00");
     assert.equal(body.timezone, "Asia/Tokyo");
     assert.equal(body.settings.waiting_room, true);
     if (state.networkFail) throw new Error("timeout");
     return send(state.zoomStatus, {
-      start_time: state.returnedStart,
+      start_time:
+        state.returnedStart ??
+        new Date(body.start_time + "+09:00").toISOString(),
       timezone: "Asia/Tokyo",
       join_url: "https://us06web.zoom.us/j/123456789?pwd=test",
       start_url: "secret-host-start-link",
@@ -185,6 +187,9 @@ test("作成・保存と同じリクエストの再試行は一度だけ発行�
   assert.equal(body.meeting.id, input.requestId);
   assert.equal(body.meeting.duration, 60);
   assert.equal(body.meeting.timezone, "Asia/Tokyo");
+  assert.equal(body.meeting.date, "2026-12-01");
+  assert.equal(body.meeting.time, "10:00");
+  assert.equal(body.meeting.startsAt, "2026-12-01T01:00:00.000Z");
   assert(!JSON.stringify(body).includes("secret"));
   assert.equal(response.headers.get("Cache-Control"), "no-store");
   assert.equal((await f.call()).status, 200);
@@ -256,6 +261,7 @@ test("Zoomが返した確定日時を日本時間で保存する（入力値で�
   assert.equal(result.meeting.time, "00:30");
   assert.equal(result.meeting.timezone, "Asia/Tokyo");
   assert.equal(result.meeting.startsAt, "2026-12-31T15:30:00.000Z");
+  assert.match(result.warning, /入力日時/);
 });
 test("Zoomの日時が不明な場合は入力日時を確定日時として保存しない", async () => {
   const f = fixture();

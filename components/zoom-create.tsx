@@ -75,7 +75,11 @@ export default function ZoomCreate({
       setUnknown(false);
       if (result.saved) {
         await onSaved();
-        setMessage("Zoom会議を作成し、クラウドに保存しました。");
+        setMessage(
+          typeof result.warning === "string"
+            ? result.warning
+            : "Zoom会議を作成し、クラウドに保存しました。",
+        );
       } else
         setMessage(
           typeof result.error === "string"

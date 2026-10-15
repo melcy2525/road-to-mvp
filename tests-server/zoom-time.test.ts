@@ -1,6 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { japanTimeToUtc, zoomTimeInJapan } from "../lib/zoom-time.ts";
+import {
+  japanTimeToUtc,
+  zoomTimeInJapan,
+  zoomStartInJapan,
+} from "../lib/zoom-time.ts";
 test("日本時間からUTCへの変換は年・月・日をまたいでも9時間差を保持する", () => {
   assert.equal(
     japanTimeToUtc("2027-01-01", "00:15"),
@@ -27,4 +31,20 @@ test("ZoomのUTC・明示offsetを日本時間へ表示する", () => {
 });
 test("時間帯不明のZoom日時は受け入れない", () => {
   assert.throws(() => zoomTimeInJapan("2026-12-01T10:00:00"));
+});
+
+test("Zoom作成リクエストは10時を1時へ書き換えず、日本時間を明示する", () => {
+  assert.deepEqual(zoomStartInJapan("2026-12-01", "10:00"), {
+    start_time: "2026-12-01T10:00:00",
+    timezone: "Asia/Tokyo",
+  });
+  assert.deepEqual(zoomStartInJapan("2027-01-01", "00:15"), {
+    start_time: "2027-01-01T00:15:00",
+    timezone: "Asia/Tokyo",
+  });
+  const payload = zoomStartInJapan("2026-12-01", "10:00");
+  assert.equal(
+    zoomTimeInJapan(new Date(payload.start_time + "+09:00").toISOString()).time,
+    "10:00",
+  );
 });

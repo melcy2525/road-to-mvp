@@ -1,6 +1,6 @@
 import { z } from "zod";
 export const JAPAN_TIMEZONE = "Asia/Tokyo";
-// Always include the UTC offset: Zoom must not reinterpret a local wall time.
+// UTC is used for comparisons and reading Zoom responses, not the create payload.
 export function japanTimeToUtc(date: string, time: string) {
   return new Date(`${date}T${time}:00+09:00`).toISOString();
 }
@@ -22,4 +22,10 @@ export function zoomTimeInJapan(raw: unknown) {
     timezone: JAPAN_TIMEZONE,
     startsAt: new Date(start).toISOString(),
   };
+}
+
+// Use one Zoom API representation: local wall time + its explicit timezone.
+// Never send an already shifted UTC wall time with a named local timezone.
+export function zoomStartInJapan(date: string, time: string) {
+  return { start_time: `${date}T${time}:00`, timezone: JAPAN_TIMEZONE };
 }

@@ -1,4 +1,4 @@
-import { japanTimeToUtc, zoomTimeInJapan } from "./zoom-time.ts";
+import { zoomStartInJapan, zoomTimeInJapan } from "./zoom-time.ts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   zoomRequestSchema,
@@ -92,7 +92,12 @@ export function createZoomHandler(options: Options) {
         const saved = await db!
           .rpc("save_zoom_meeting", { p_request_id: input.requestId })
           .abortSignal(deadline());
+        const warning =
+          valid.data.date !== input.date || valid.data.time !== input.time
+            ? `会議は作成済みですが、入力日時（${input.date} ${input.time} 日本時間）とZoomの確定日時（${valid.data.date} ${valid.data.time} 日本時間）が一致しません。再発行せずZoomの会議日時をご確認ください。`
+            : undefined;
         return reply(saved.error ? 202 : 200, {
+          ...(warning ? { warning } : {}),
           meeting: valid.data,
           saved: !saved.error,
           ...(saved.error
@@ -221,9 +226,8 @@ export function createZoomHandler(options: Options) {
             body: JSON.stringify({
               topic: input.title,
               type: 2,
-              start_time: japanTimeToUtc(input.date, input.time),
+              ...zoomStartInJapan(input.date, input.time),
               duration: input.duration,
-              timezone: input.timezone,
               agenda: input.memo,
               settings: { waiting_room: true, join_before_host: false },
             }),
