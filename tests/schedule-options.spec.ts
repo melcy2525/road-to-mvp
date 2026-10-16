@@ -10,6 +10,7 @@ test("予定とZoomの標準色を分け、色と相手発行リンクを保存�
   await nav("スケジュール");
   await page.getByRole("button", { name: "予定を追加", exact: true }).click();
   await expect(page.getByLabel("予定の色")).toHaveValue("gold");
+  await expect(page.getByLabel("予定の種類")).toHaveCount(0);
   await page.getByLabel("タイトル", { exact: true }).fill("相手主催の商談");
   await page.getByLabel("相手からの会議リンク（任意）").fill("https://zoom.us/j/123456789");
   await page.getByRole("button", { name: "保存する", exact: true }).click();

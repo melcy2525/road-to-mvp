@@ -293,7 +293,7 @@ export default function Page() {
     if (form.kind === "予定")
       next.events = [
         ...data.events.filter((x) => x.id !== id),
-        { id, date: v.date, time: v.time, title: v.title, type: v.type, color: v.color as EventColor, url: v.url.trim() || undefined },
+        { id, date: v.date, time: v.time, title: v.title, type: data.events.find((event) => event.id === id)?.type ?? "予定", color: v.color as EventColor, url: v.url.trim() || undefined },
       ];
     if (form.kind === "Zoom")
       next.meetings = [
@@ -666,7 +666,7 @@ export default function Page() {
                             <time>{e.time}</time>
                             <div>
                               <strong>{e.title}</strong>
-                              <small>{e.meetingId ? "Zoom管理" : "予定"} · {e.type}</small>
+                              <small>{e.meetingId ? "Zoom管理" : "スケジュール"}</small>
                               {e.url && <a className="event-link" href={e.url} target="_blank" rel="noopener noreferrer">会議リンクを開く ↗</a>}
                             </div>
                             {e.meetingId
@@ -1262,19 +1262,6 @@ export default function Page() {
                         <input name="url" type="url" pattern="https://.*" maxLength={2048} defaultValue={form.values.url} placeholder="https://zoom.us/j/…" />
                       </label>
                       {form.values.url && <a className="event-link" href={form.values.url} target="_blank" rel="noopener noreferrer">会議リンクを開く ↗</a>}
-                      <label>
-                        予定の種類
-                        <select
-                          name="type"
-                          defaultValue={form.values.type || "商談"}
-                        >
-                          {["商談", "訪問", "電話", "作業", "その他"].map(
-                            (t) => (
-                              <option key={t}>{t}</option>
-                            ),
-                          )}
-                        </select>
-                      </label>
                       </>
                     )}
                     {form.kind === "Zoom" && (
