@@ -1595,3 +1595,10 @@ body { isolation: isolate; }
   .ambient-glow { animation: none !important; will-change: auto; }
   .ambient-toggle { display: none; }
 }
+
+.sync-footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid #a6b6ce14; }
+.sync-footer .cloud-status { margin: 0; padding: 0; gap: 8px; font-size: 10px; color: #92a0b2; flex-wrap: wrap; }
+.sync-footer .cloud-status > [role="status"] { flex: 1 1 160px; overflow-wrap: anywhere; }
+.sync-footer .cloud-status .live-dot { width: 5px; height: 5px; }
+.sync-footer .cloud-status button { min-height: 44px; margin-left: 0; padding: 6px 10px; font-size: 10px; }
+.sync-footer .account-email { margin: 4px 0 0; font-size: 9px; color: #7e8da2; overflow-wrap: anywhere; }

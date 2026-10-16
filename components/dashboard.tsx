@@ -511,17 +511,6 @@ export default function Page() {
           </div>
         </header>
         <main>
-          <div className="cloud-status">
-            <span className="live-dot" />
-            <span role="status">
-              {saving ? "クラウドに保存中…" : syncMessage}
-              {lastSynced && !saving ? " · " + lastSynced : ""}
-            </span>
-            <button disabled={saving} onClick={() => void reload()}>
-              最新を読み込む
-            </button>
-          </div>
-          <div className="account-email">{user.email}</div>
           <div className="page-heading">
             <div>
               <div className="eyebrow">
@@ -1179,6 +1168,19 @@ export default function Page() {
               save(mergeLegacy(data, legacy, revision.current === 0))
             }
           />
+          <div className="sync-footer">
+            <div className="cloud-status">
+              <span className="live-dot" />
+              <span role="status">
+                {saving ? "クラウドに保存中…" : syncMessage}
+                {lastSynced && !saving ? " · " + lastSynced : ""}
+              </span>
+              <button disabled={saving} onClick={() => void reload()}>
+                最新を読み込む
+              </button>
+            </div>
+            <div className="account-email">{user.email}</div>
+          </div>
           <footer>
             <span>ROAD TO MVP</span>
             <span>あなただけの、頂点への道。</span>
