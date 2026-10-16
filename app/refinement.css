@@ -1602,3 +1602,37 @@ body { isolation: isolate; }
 .sync-footer .cloud-status .live-dot { width: 5px; height: 5px; }
 .sync-footer .cloud-status button { min-height: 44px; margin-left: 0; padding: 6px 10px; font-size: 10px; }
 .sync-footer .account-email { margin: 4px 0 0; font-size: 9px; color: #7e8da2; overflow-wrap: anywhere; }
+
+.contacts-panel { padding: 0; overflow: hidden; }
+.contacts-list { margin: 0; padding: 0; list-style: none; }
+.contacts-list-heading, .contact-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) 105px minmax(0, 1fr) minmax(0, 1fr) 84px;
+  gap: 14px;
+  align-items: center;
+}
+.contacts-list-heading { padding: 12px 20px; font-size: 11px; color: #98a9bc; background: #ffffff03; border-bottom: 1px solid var(--border); }
+.contact-list-item { padding: 14px 20px; border-bottom: 1px solid var(--border); }
+.contact-list-item:last-child { border-bottom: 0; }
+.contact-summary { font-size: 12px; }
+.contact-summary > * { min-width: 0; }
+.contact-summary .contact-name { font-size: 14px; color: #edf1f7; overflow-wrap: anywhere; }
+.contact-summary time { font-size: 11px; color: #a3b1c3; }
+.contact-place, .contact-occupation { color: #b5c1d2; overflow-wrap: anywhere; }
+.contact-summary small { display: none; }
+.contact-summary .row-actions { margin: 0; gap: 0; justify-content: flex-end; }
+.contact-summary .row-actions button { min-width: 40px; min-height: 44px; }
+.contact-memo { margin-top: 4px; font-size: 12px; }
+.contact-memo summary { width: fit-content; min-height: 40px; align-content: center; cursor: pointer; color: #d8bd85; }
+.contact-memo p { white-space: pre-wrap; overflow-wrap: anywhere; color: #b5c1d2; line-height: 1.8; margin: 8px 0 0; padding: 12px; background: #ffffff03; border-radius: 8px; }
+@media (max-width: 1000px) {
+  .contacts-list-heading { display: none; }
+  .contact-list-item { padding: 12px 16px; }
+  .contact-summary { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 80px; gap: 6px 12px; }
+  .contact-name { grid-column: 1 / 3; grid-row: 1; }
+  .contact-summary time { grid-column: 1 / 3; grid-row: 2; }
+  .contact-summary .row-actions { grid-column: 3; grid-row: 1 / 3; }
+  .contact-place { grid-column: 1; grid-row: 3; }
+  .contact-occupation { grid-column: 2 / 4; grid-row: 3; }
+  .contact-summary small { display: inline; font-size: 10px; color: #8495ab; margin-right: 6px; }
+}

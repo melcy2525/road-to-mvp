@@ -1087,13 +1087,22 @@ export default function Page() {
                   <label className="contact-search">出会いを検索<input type="search" value={contactSearch} onChange={(e) => setContactSearch(e.target.value)} placeholder="名前・場所・職業・メモで検索" /></label>
                   {!data.contacts?.length && <Empty label="今日の出会いを、ここに残しましょう。" action={() => open("出会い")} />}
                   {!!data.contacts?.length && !(data.contacts ?? []).some((person) => [person.name, person.date, person.place, person.occupation, person.memo].join(" ").toLocaleLowerCase().includes(contactSearch.trim().toLocaleLowerCase())) && <p className="helper">一致する記録がありません。</p>}
-                  <div className="cards-grid">
-                    {[...(data.contacts ?? [])].filter((person) => [person.name, person.date, person.place, person.occupation, person.memo].join(" ").toLocaleLowerCase().includes(contactSearch.trim().toLocaleLowerCase())).sort((a, b) => b.date.localeCompare(a.date)).map((person) => (
-                      <section className="panel record-card contact-card" key={person.id}>
-                        <div className="record-top"><h2>{person.name}</h2>{editButtons("出会い", "contacts", person)}</div>
-                        {[["会った日", person.date], ["場所", person.place], ["職業", person.occupation], ["その他・メモ", person.memo]].map(([label, value]) => <div className="record-field" key={label}><small>{label}</small><p>{value || "未入力"}</p></div>)}
-                      </section>
-                    ))}
+                  <div className="panel contacts-panel">
+                    <div className="contacts-list-heading" aria-hidden="true"><span>名前</span><span>会った日</span><span>場所</span><span>職業</span><span>操作</span></div>
+                    <ul className="contacts-list" aria-label="出会いの一覧">
+                      {[...(data.contacts ?? [])].filter((person) => [person.name, person.date, person.place, person.occupation, person.memo].join(" ").toLocaleLowerCase().includes(contactSearch.trim().toLocaleLowerCase())).sort((a, b) => b.date.localeCompare(a.date)).map((person) => (
+                        <li className="contact-list-item" key={person.id}>
+                          <div className="contact-summary">
+                            <strong className="contact-name">{person.name}</strong>
+                            <time dateTime={person.date}>{person.date.replaceAll("-", "/")}</time>
+                            <span className="contact-place"><small>場所</small>{person.place || "—"}</span>
+                            <span className="contact-occupation"><small>職業</small>{person.occupation || "—"}</span>
+                            {editButtons("出会い", "contacts", person)}
+                          </div>
+                          {person.memo && <details className="contact-memo"><summary>メモを見る</summary><p>{person.memo}</p></details>}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </>
               )}
