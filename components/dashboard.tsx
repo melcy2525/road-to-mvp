@@ -26,11 +26,13 @@ import {
   dateKey,
   initialData,
   mergeLegacy,
+  monthlyGoal,
   scheduleEvents,
   yen,
 } from "@/lib/store";
 import { useAuth } from "@/components/auth-gate";
 import { zoomTimeInJapan } from "@/lib/zoom-time";
+import GoalFields from "@/components/goal-fields";
 import ZoomCreate from "@/components/zoom-create";
 import LegacyImport from "@/components/legacy-import";
 import { createRepository } from "@/lib/cloud";
@@ -236,6 +238,8 @@ export default function Page() {
     .filter((s) => s.date.startsWith(month))
     .reduce((n, s) => n + s.amount, 0);
   const rate = data.annual > 0 ? (annualSales / data.annual) * 100 : 0;
+  const currentGoal = monthlyGoal(data, today.slice(0, 7));
+  const selectedGoal = monthlyGoal(data, month);
   const open = (
     kind: string,
     values: Record<string, string> = {},
@@ -264,8 +268,19 @@ export default function Page() {
     ) as Record<string, string>;
     const id = form.id || crypto.randomUUID();
     let next = { ...data };
-    if (form.kind === "目標")
-      next = { ...data, annual: Number(v.annual), monthly: Number(v.monthly) };
+    if (form.kind === "目標") {
+      next = {
+        ...data,
+        annual: Number(v.annual),
+        monthlyGoals: {
+          ...data.monthlyGoals,
+          [v.goalMonth]:
+            v.monthlyMode === "auto"
+              ? { mode: "auto" }
+              : { mode: "manual", amount: Number(v.monthly) },
+        },
+      };
+    }
     if (form.kind === "予定")
       next.events = [
         ...data.events.filter((x) => x.id !== id),
@@ -312,7 +327,10 @@ export default function Page() {
           action: v.action,
         },
       ];
-    if (await save(next)) setForm(null);
+    if (await save(next)) {
+      if (form.kind === "目標") setMonth(v.goalMonth);
+      setForm(null);
+    }
   }
 
   const scheduledEvents = scheduleEvents(data);
@@ -590,10 +608,13 @@ export default function Page() {
                         今月の売上目標
                         <Target size={17} />
                       </div>
-                      <div className="stat-value">{yen(data.monthly)}</div>
+                      <div className="stat-value">
+                        {yen(currentGoal.amount)}
+                      </div>
                       <div className="stat-foot">
                         <span className="tiny-tag">
-                          {Number(today.slice(5, 7))}月
+                          {Number(today.slice(5, 7))}月 ·{" "}
+                          {currentGoal.mode === "auto" ? "自動" : "手動"}
                         </span>
                         実績{" "}
                         {yen(
@@ -602,6 +623,16 @@ export default function Page() {
                             .reduce((n, s) => n + s.amount, 0),
                         )}
                       </div>
+                      <button
+                        className="goal-shortcut"
+                        aria-label="今月の目標を設定"
+                        onClick={() =>
+                          open("目標", { goalMonth: today.slice(0, 7) })
+                        }
+                      >
+                        自動・手動を変更
+                        <ChevronRight size={12} />
+                      </button>
                     </section>
                   </div>
                   <div className="home-columns">
@@ -947,7 +978,7 @@ export default function Page() {
                       onClick={() =>
                         open("目標", {
                           annual: String(data.annual),
-                          monthly: String(data.monthly),
+                          goalMonth: month,
                         })
                       }
                     >
@@ -971,8 +1002,15 @@ export default function Page() {
                         月間売上目標
                         <Flag size={18} />
                       </div>
-                      <div className="stat-value">{yen(data.monthly)}</div>
-                      <p className="helper">各月共通の目標額</p>
+                      <div className="stat-value">
+                        {yen(selectedGoal.amount)}
+                      </div>
+                      <p className="helper">
+                        {month.replace("-", "年")}月 ·{" "}
+                        {selectedGoal.mode === "auto"
+                          ? "自動計算（年間目標 ÷ 12）"
+                          : "手動で設定"}
+                      </p>
                     </section>
                     <section className="stat">
                       <label className="stat-label">
@@ -987,8 +1025,11 @@ export default function Page() {
                       <div className="stat-value">{yen(monthlySales)}</div>
                       <p className="helper">
                         月間実績 / 達成率{" "}
-                        {data.monthly
-                          ? ((monthlySales / data.monthly) * 100).toFixed(1)
+                        {selectedGoal.amount
+                          ? (
+                              (monthlySales / selectedGoal.amount) *
+                              100
+                            ).toFixed(1)
                           : 0}
                         %
                       </p>
@@ -1133,20 +1174,10 @@ export default function Page() {
             <form onSubmit={submit}>
               <fieldset disabled={saving} className="form-fields">
                 {form.kind === "目標" ? (
-                  <>
-                    <Field
-                      label="年間売上目標（円）"
-                      name="annual"
-                      type="number"
-                      value={form.values.annual}
-                    />
-                    <Field
-                      label="月間売上目標（円・各月共通）"
-                      name="monthly"
-                      type="number"
-                      value={form.values.monthly}
-                    />
-                  </>
+                  <GoalFields
+                    data={data}
+                    month={form.values.goalMonth || month}
+                  />
                 ) : (
                   <>
                     {form.kind === "振り返り" ? (

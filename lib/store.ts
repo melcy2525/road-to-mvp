@@ -33,7 +33,10 @@ export type Review = {
   action: string;
 };
 export type Sale = { id: string; date: string; title: string; amount: number };
+export type MonthlyGoal = { mode: "auto" } | { mode: "manual"; amount: number };
 export type Data = {
+  monthlyGoalMode?: "auto" | "manual";
+  monthlyGoals?: Record<string, MonthlyGoal>;
   annual: number;
   monthly: number;
   events: Event[];
@@ -45,6 +48,7 @@ export type Data = {
 export const initialData: Data = {
   annual: 50000000,
   monthly: 4200000,
+  monthlyGoalMode: "auto",
   events: [],
   meetings: [],
   reports: [],
@@ -65,7 +69,18 @@ const id = z.string().uuid();
 const date = z.iso.date();
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const money = z.number().int().nonnegative().max(999999999999);
+const monthKey = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/);
 export const dataSchema = z.object({
+  monthlyGoalMode: z.enum(["auto", "manual"]).optional(),
+  monthlyGoals: z
+    .record(
+      monthKey,
+      z.discriminatedUnion("mode", [
+        z.object({ mode: z.literal("auto") }),
+        z.object({ mode: z.literal("manual"), amount: money.positive() }),
+      ]),
+    )
+    .optional(),
   annual: money.positive(),
   monthly: money.positive(),
   events: z
@@ -143,6 +158,10 @@ export function mergeLegacy(
   return parseData({
     annual: pristine ? legacy.annual : cloud.annual,
     monthly: pristine ? legacy.monthly : cloud.monthly,
+    monthlyGoalMode: pristine
+      ? (legacy.monthlyGoalMode ?? "manual")
+      : cloud.monthlyGoalMode,
+    monthlyGoals: pristine ? legacy.monthlyGoals : cloud.monthlyGoals,
     events: merge(cloud.events, legacy.events, (x) => x.id),
     meetings: merge(cloud.meetings, legacy.meetings, (x) => x.id),
     reports: merge(cloud.reports, legacy.reports, (x) => x.date),
@@ -165,4 +184,22 @@ export function scheduleEvents(data: Data): ScheduleEvent[] {
       type: "Zoom",
     })),
   ];
+}
+
+// Legacy documents keep their previously entered common monthly amount.
+export function monthlyGoal(
+  data: Data,
+  month: string,
+): { mode: "auto" | "manual"; amount: number } {
+  const setting = data.monthlyGoals?.[month];
+  const mode = setting?.mode ?? data.monthlyGoalMode ?? "manual";
+  return {
+    mode,
+    amount:
+      mode === "auto"
+        ? Math.ceil(data.annual / 12)
+        : setting?.mode === "manual"
+          ? setting.amount
+          : data.monthly,
+  };
 }

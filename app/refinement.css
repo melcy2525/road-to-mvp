@@ -1406,3 +1406,91 @@ input[readonly] {
     max-width: 180px;
   }
 }
+.goal-mode {
+  border: 0;
+  padding: 0;
+  margin: 0 0 18px;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.goal-mode legend {
+  font-size: 12px;
+  color: #c4d0e0;
+  margin-bottom: 10px;
+}
+.goal-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 12px;
+  border: 1px solid #a6b6ce30;
+  border-radius: 10px;
+  background: #0b152340;
+  cursor: pointer;
+  min-width: 0;
+}
+.goal-choice.chosen {
+  border-color: #d8bd8580;
+  background: #d8bd8510;
+}
+.goal-choice input {
+  width: 17px;
+  height: 17px;
+  min-height: 0 !important;
+  padding: 0;
+  accent-color: #d8bd85;
+  flex-shrink: 0;
+}
+.goal-choice strong {
+  font-size: 12px;
+  font-weight: 500;
+  color: #e2dfd5;
+}
+.goal-choice small {
+  font-size: 10px;
+  margin-top: 4px;
+  line-height: 1.6;
+}
+.goal-preview {
+  border: 1px solid #d8bd8530;
+  background: linear-gradient(120deg, #d8bd8510, #142134);
+  border-radius: 12px;
+  padding: 17px;
+}
+.goal-preview > span {
+  font-size: 11px;
+  color: #bfc9d6;
+}
+.goal-preview output {
+  display: block;
+  font-size: 28px;
+  line-height: 1.5;
+  color: #e9d2a4;
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.goal-preview p {
+  font-size: 11px;
+  color: #a5b5cb;
+  line-height: 1.9;
+  margin-top: 8px;
+}
+@media (max-width: 360px) {
+  .goal-mode {
+    grid-template-columns: 1fr;
+  }
+  .goal-choice {
+    padding: 12px;
+  }
+}
+.goal-shortcut {
+  min-height: 36px;
+  color: #dfc691;
+  font-size: 10px;
+  margin-top: 6px;
+  gap: 4px;
+  text-align: left;
+}

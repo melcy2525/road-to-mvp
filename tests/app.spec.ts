@@ -77,6 +77,7 @@ test("基本機能: 登録・編集・削除、売上集計、再読み込み後
   await submit(page);
   await expect(page.locator(".stat-value").nth(2)).toHaveText("￥500,000");
   await page.getByRole("button", { name: "目標を編集", exact: true }).click();
+  await page.getByRole("radio", { name: "手動で指定", exact: false }).check();
   await page.getByLabel("月間売上目標").fill("5000000");
   await submit(page);
   await expect(page.locator(".stat-value").nth(1)).toHaveText("￥5,000,000");
