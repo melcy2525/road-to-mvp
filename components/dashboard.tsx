@@ -21,6 +21,7 @@ import {
   Check,
   TrendingUp,
   NotebookPen,
+  Users,
 } from "lucide-react";
 import {
   Data,
@@ -47,8 +48,9 @@ const tabs = [
   "目標管理",
   "月間振り返り",
   "メモ",
+  "出会い",
 ];
-const icons = [Home, CalendarDays, Video, ClipboardList, Target, TrendingUp, NotebookPen];
+const icons = [Home, CalendarDays, Video, ClipboardList, Target, TrendingUp, NotebookPen, Users];
 type FormState = { kind: string; values: Record<string, string>; id?: string };
 export default function Page() {
   const [data, setData] = useState<Data>(initialData),
@@ -61,6 +63,7 @@ export default function Page() {
     [cursor, setCursor] = useState(""),
     [view, setView] = useState("月"),
     [month, setMonth] = useState(""),
+    [contactSearch, setContactSearch] = useState(""),
     [loadError, setLoadError] = useState(false);
   const { client, user, logout } = useAuth();
   const repository = useMemo(
@@ -255,7 +258,7 @@ export default function Page() {
       id,
     });
   function remove(
-    collection: "events" | "meetings" | "reports" | "reviews" | "sales" | "notes",
+    collection: "events" | "meetings" | "reports" | "reviews" | "sales" | "notes" | "contacts",
     id: string,
   ) {
     if (confirm("このデータを削除しますか？"))
@@ -285,6 +288,11 @@ export default function Page() {
         },
       };
     }
+    if (form.kind === "出会い")
+      next.contacts = [
+        ...(data.contacts ?? []).filter((x) => x.id !== id),
+        { id, date: v.date, place: v.place.trim(), name: v.name.trim(), occupation: v.occupation.trim(), memo: v.memo.trim() },
+      ];
     if (form.kind === "メモ")
       next.notes = [
         ...(data.notes ?? []).filter((x) => x.id !== id),
@@ -376,7 +384,7 @@ export default function Page() {
   );
   const editButtons = (
     kind: string,
-    key: "events" | "meetings" | "reports" | "reviews" | "sales" | "notes",
+    key: "events" | "meetings" | "reports" | "reviews" | "sales" | "notes" | "contacts",
     item: { id: string },
   ) => (
     <div className="row-actions">
@@ -1081,6 +1089,25 @@ export default function Page() {
                   </section>
                 </>
               )}
+              {tab === "出会い" && (
+                <>
+                  <div className="list-heading">
+                    <div><h2>出会いを、大切なつながりに。</h2><p className="memo-intro">会った場所や会話、その人のことを自由に残しましょう。</p></div>
+                    <button className="primary" onClick={() => open("出会い")}><Plus size={16} />会った人を記録</button>
+                  </div>
+                  <label className="contact-search">出会いを検索<input type="search" value={contactSearch} onChange={(e) => setContactSearch(e.target.value)} placeholder="名前・場所・職業・メモで検索" /></label>
+                  {!data.contacts?.length && <Empty label="今日の出会いを、ここに残しましょう。" action={() => open("出会い")} />}
+                  {!!data.contacts?.length && !(data.contacts ?? []).some((person) => [person.name, person.date, person.place, person.occupation, person.memo].join(" ").toLocaleLowerCase().includes(contactSearch.trim().toLocaleLowerCase())) && <p className="helper">一致する記録がありません。</p>}
+                  <div className="cards-grid">
+                    {[...(data.contacts ?? [])].filter((person) => [person.name, person.date, person.place, person.occupation, person.memo].join(" ").toLocaleLowerCase().includes(contactSearch.trim().toLocaleLowerCase())).sort((a, b) => b.date.localeCompare(a.date)).map((person) => (
+                      <section className="panel record-card contact-card" key={person.id}>
+                        <div className="record-top"><h2>{person.name}</h2>{editButtons("出会い", "contacts", person)}</div>
+                        {[["会った日", person.date], ["場所", person.place], ["職業", person.occupation], ["その他・メモ", person.memo]].map(([label, value]) => <div className="record-field" key={label}><small>{label}</small><p>{value || "未入力"}</p></div>)}
+                      </section>
+                    ))}
+                  </div>
+                </>
+              )}
               {tab === "メモ" && (
                 <>
                   <div className="list-heading">
@@ -1172,7 +1199,7 @@ export default function Page() {
             >
               <Icon size={20} />
               <span>
-                {["ホーム", "予定", "Zoom", "日報", "目標", "振り返り", "メモ"][i]}
+                {["ホーム", "予定", "Zoom", "日報", "目標", "振り返り", "メモ", "出会い"][i]}
               </span>
             </button>
           );
@@ -1209,6 +1236,14 @@ export default function Page() {
                     data={data}
                     month={form.values.goalMonth || month}
                   />
+                ) : form.kind === "出会い" ? (
+                  <>
+                    <Field label="会った日" name="date" type="date" value={form.values.date} />
+                    <Field label="名前" name="name" value={form.values.name} />
+                    <label>場所（任意）<input name="place" maxLength={200} defaultValue={form.values.place} placeholder="例：紹介、交流会、カフェ" /></label>
+                    <label>職業（任意）<input name="occupation" maxLength={200} defaultValue={form.values.occupation} /></label>
+                    <label>その他・メモ（任意）<textarea name="memo" maxLength={5000} defaultValue={form.values.memo} placeholder="話した内容、趣味、次に話したいことなど" /></label>
+                  </>
                 ) : form.kind === "メモ" ? (
                   <>
                     <label>タイトル（任意）<input name="title" maxLength={200} defaultValue={form.values.title} placeholder="例：商談で意識すること" /></label>
@@ -1333,10 +1368,11 @@ export default function Page() {
                             振り返り: "reviews",
                             売上: "sales",
                             メモ: "notes",
+                            出会い: "contacts",
                           } as const
                         )[
                           form.kind as
-                            "予定" | "Zoom" | "日報" | "振り返り" | "売上" | "メモ"
+                            "予定" | "Zoom" | "日報" | "振り返り" | "売上" | "メモ" | "出会い"
                         ];
                         if (
                           confirm("このデータを削除しますか？") &&

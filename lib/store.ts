@@ -40,7 +40,9 @@ export type Review = {
 export type Sale = { id: string; date: string; title: string; amount: number };
 export type MonthlyGoal = { mode: "auto" } | { mode: "manual"; amount: number };
 export type Memo = { id: string; title: string; body: string; updatedAt: string };
+export type Contact = { id: string; date: string; place: string; name: string; occupation: string; memo: string };
 export type Data = {
+  contacts?: Contact[];
   notes?: Memo[];
   monthlyGoalMode?: "auto" | "manual";
   monthlyGoals?: Record<string, MonthlyGoal>;
@@ -53,6 +55,7 @@ export type Data = {
   sales: Sale[];
 };
 export const initialData: Data = {
+  contacts: [],
   notes: [],
   annual: 50000000,
   monthly: 4200000,
@@ -79,6 +82,10 @@ const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const money = z.number().int().nonnegative().max(999999999999);
 const monthKey = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/);
 export const dataSchema = z.object({
+  contacts: z.array(z.object({
+    id, date, place: z.string().max(200), name: z.string().trim().min(1).max(200),
+    occupation: z.string().max(200), memo: text,
+  })).max(10000).optional(),
   notes: z.array(z.object({
     id, title: z.string().max(200), body: z.string().trim().min(1).max(20000),
     updatedAt: z.iso.datetime({ offset: true }),
@@ -175,6 +182,7 @@ export function mergeLegacy(
       ? (legacy.monthlyGoalMode ?? "manual")
       : cloud.monthlyGoalMode,
     monthlyGoals: pristine ? legacy.monthlyGoals : cloud.monthlyGoals,
+    contacts: merge(cloud.contacts ?? [], legacy.contacts ?? [], (x) => x.id),
     notes: merge(cloud.notes ?? [], legacy.notes ?? [], (x) => x.id),
     events: merge(cloud.events, legacy.events, (x) => x.id),
     meetings: merge(cloud.meetings, legacy.meetings, (x) => x.id),

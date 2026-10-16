@@ -859,7 +859,8 @@ input[readonly] {
   }
   .mobile-dock {
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(8, minmax(44px, 1fr));
+    overflow-x: auto;
     position: fixed;
     left: 14px;
     right: 14px;
@@ -1514,3 +1515,6 @@ textarea.memo-editor { min-height: 260px; line-height: 1.8; }
 .event-link { display: inline-block; color: #87bcff; font-size: 12px; padding: 8px 0; overflow-wrap: anywhere; }
 .schedule-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 8px; }
 .schedule-legend span { color: var(--event-color); }
+
+.contact-search { display: grid; gap: 8px; margin: 0 0 24px; font-size: 13px; color: #b5c1d2; }
+.contact-card h2, .contact-card p { overflow-wrap: anywhere; white-space: pre-wrap; }
