@@ -70,7 +70,7 @@ test("基本機能: 登録・編集・削除、売上集計、再読み込み後
   await expect(page.locator(".record-card")).toContainText(
     "明日の改善行動を記録",
   );
-  await nav(page, "目標管理");
+  await nav(page, "目標設定");
   await page.getByRole("button", { name: "売上を記録", exact: true }).click();
   await page.getByLabel("売上内容・顧客名").fill("テスト成約");
   await page.getByLabel("売上金額").fill("500000");
@@ -110,7 +110,7 @@ test("iPhone幅で6画面に横はみ出しがなく、フォームが操作で�
     "スケジュール",
     "Zoom管理",
     "日報",
-    "目標管理",
+    "目標設定",
     "月間振り返り",
   ]) {
     await nav(page, tab);

@@ -19,6 +19,7 @@ test("モバイルの下部メニューで8画面に移動でき、狭い画面�
   const dock = page.getByRole("navigation", { name: "画面の切り替え" });
   await expect(dock).toBeVisible();
   await expect(dock.getByRole("button")).toHaveCount(8);
+  await expect(dock.getByRole("button")).toHaveText(["ホーム", "目標", "予定", "Zoom", "出会い", "日報", "振り返り", "メモ"]);
   await page.screenshot({
     path: info.outputPath("home-mobile.png"),
     fullPage: true,
@@ -31,7 +32,7 @@ test("モバイルの下部メニューで8画面に移動でき、狭い画面�
       "スケジュール",
       "Zoom管理",
       "日報",
-      "目標管理",
+      "目標設定",
       "月間振り返り",
       "メモ",
       "出会い",
@@ -47,7 +48,7 @@ test("モバイルの下部メニューで8画面に移動でき、狭い画面�
       ).toBe(true);
     }
   }
-  await dock.getByRole("button", { name: "目標管理", exact: true }).click();
+  await dock.getByRole("button", { name: "目標設定", exact: true }).click();
   await page.screenshot({
     path: info.outputPath("goals-mobile.png"),
     fullPage: true,

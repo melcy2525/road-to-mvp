@@ -42,15 +42,15 @@ import LegacyImport from "@/components/legacy-import";
 import { createRepository } from "@/lib/cloud";
 const tabs = [
   "ホーム",
+  "目標設定",
   "スケジュール",
   "Zoom管理",
+  "出会い",
   "日報",
-  "目標管理",
   "月間振り返り",
   "メモ",
-  "出会い",
 ];
-const icons = [Home, CalendarDays, Video, ClipboardList, Target, TrendingUp, NotebookPen, Users];
+const icons = [Home, Target, CalendarDays, Video, Users, ClipboardList, TrendingUp, NotebookPen];
 type FormState = { kind: string; values: Record<string, string>; id?: string };
 export default function Page() {
   const [data, setData] = useState<Data>(initialData),
@@ -575,7 +575,7 @@ export default function Page() {
                       <span>
                         <span className="live-dot" /> 挑戦は、今日から始まる。
                       </span>
-                      <button onClick={() => go("目標管理")}>
+                      <button onClick={() => go("目標設定")}>
                         目標を確認する <ArrowUpRight size={15} />
                       </button>
                     </div>
@@ -979,7 +979,7 @@ export default function Page() {
                   </div>
                 </>
               )}
-              {tab === "目標管理" && (
+              {tab === "目標設定" && (
                 <>
                   <div className="list-heading">
                     <h2>{year}年の目標と実績</h2>
@@ -1201,7 +1201,7 @@ export default function Page() {
             >
               <Icon size={20} />
               <span>
-                {["ホーム", "予定", "Zoom", "日報", "目標", "振り返り", "メモ", "出会い"][i]}
+                {["ホーム", "目標", "予定", "Zoom", "出会い", "日報", "振り返り", "メモ"][i]}
               </span>
             </button>
           );

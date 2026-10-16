@@ -38,7 +38,7 @@ test("iPhoneで自動・手動を切り替え、月別に保存して再読み�
   await expect(page.locator(".stat-value").nth(2)).toHaveText("￥5,500,000");
   await page
     .getByRole("navigation", { name: "画面の切り替え" })
-    .getByRole("button", { name: "目標管理", exact: true })
+    .getByRole("button", { name: "目標設定", exact: true })
     .click();
   await page.getByRole("button", { name: "目標を編集", exact: true }).click();
   await page.getByLabel("年間売上目標（円）", { exact: true }).fill("72000000");
