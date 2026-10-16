@@ -1518,3 +1518,80 @@ textarea.memo-editor { min-height: 260px; line-height: 1.8; }
 
 .contact-search { display: grid; gap: 8px; margin: 0 0 24px; font-size: 13px; color: #b5c1d2; }
 .contact-card h2, .contact-card p { overflow-wrap: anywhere; white-space: pre-wrap; }
+
+/* Three soft gradients move using compositor transforms, without canvas/video. */
+body { isolation: isolate; }
+.ambient-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+.ambient-glow {
+  position: absolute;
+  width: min(85vw, 1050px);
+  height: min(85vw, 1050px);
+  border-radius: 50%;
+  will-change: transform;
+}
+.ambient-gold {
+  top: -28%; right: -25%;
+  background: radial-gradient(ellipse, #b18b4438 0%, #96763e12 38%, transparent 70%);
+  animation: ambient-drift-gold 26s ease-in-out infinite alternate;
+}
+.ambient-blue {
+  bottom: -35%; left: 0;
+  background: radial-gradient(ellipse, #396b9c38 0%, #254b751a 38%, transparent 70%);
+  animation: ambient-drift-blue 32s ease-in-out infinite alternate;
+}
+.ambient-soft {
+  top: 35%; right: -30%;
+  background: radial-gradient(ellipse, #bfa16d1c 0%, transparent 68%);
+  animation: ambient-drift-soft 22s ease-in-out infinite alternate;
+}
+@keyframes ambient-drift-gold {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-22vw, 24vh, 0) scale(1.15); }
+}
+@keyframes ambient-drift-blue {
+  from { transform: translate3d(-8vw, 0, 0) scale(1.1); }
+  to { transform: translate3d(22vw, -28vh, 0) scale(1); }
+}
+@keyframes ambient-drift-soft {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-30vw, -20vh, 0); }
+}
+.ambient-background[data-paused="true"] .ambient-glow { animation-play-state: paused; }
+.auth-shell {
+  background: radial-gradient(ellipse at 50% -10%, #30445a66, transparent 60%);
+}
+.ambient-toggle {
+  position: fixed;
+  right: 16px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #a6b6ce28;
+  border-radius: 24px;
+  color: #b6c2d2;
+  background: #101b2bf2;
+  font-size: 10px;
+  box-shadow: 0 4px 20px #0003;
+}
+@media (max-width: 800px) {
+  .ambient-glow { width: 140vw; height: 140vw; }
+  .ambient-gold { top: -10%; right: -70%; }
+  .ambient-blue { bottom: -15%; left: -65%; }
+  .ambient-toggle { bottom: calc(92px + env(safe-area-inset-bottom, 0px)); right: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ambient-glow { animation: none !important; will-change: auto; }
+  .ambient-toggle { display: none; }
+}

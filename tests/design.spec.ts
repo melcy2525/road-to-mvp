@@ -69,3 +69,23 @@ test("モバイルの下部メニューで8画面に移動でき、狭い画面�
     animations: "disabled",
   });
 });
+
+
+test("背景を停止・再開でき、再読み込みとOSの動きを減らす設定に対応する", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const gold = page.locator(".ambient-gold");
+  await expect(gold).toHaveCSS("animation-play-state", "running");
+  await page.getByRole("button", { name: "背景の動きを止める", exact: true }).click();
+  await expect(gold).toHaveCSS("animation-play-state", "paused");
+  await page.reload();
+  await expect(page.getByRole("button", { name: "背景の動きを再開", exact: true })).toBeVisible();
+  await expect(gold).toHaveCSS("animation-play-state", "paused");
+  await page.getByRole("button", { name: "背景の動きを再開", exact: true }).click();
+  await expect(gold).toHaveCSS("animation-play-state", "running");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(gold).toHaveCSS("animation-name", "none");
+  await expect(page.locator(".ambient-toggle")).toBeHidden();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

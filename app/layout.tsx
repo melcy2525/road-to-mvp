@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import AmbientBackground from "@/components/ambient-background";
 import "./globals.css";
 import "./refinement.css";
 export const viewport: Viewport = {
@@ -15,7 +16,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ja">
-      <body>{children}</body>
+      <body><AmbientBackground />{children}</body>
     </html>
   );
 }
