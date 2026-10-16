@@ -50,3 +50,35 @@ test("スマホで出会いを登録し、PCで検索・編集、スマホで再
   expect(mock.backend.state.contacts).toEqual([]);
   await pc.close();
 });
+
+test("会った日・場所・職業・名前で昇降順を切り替え、検索と併用できる", async ({ page }) => {
+  const mock = mockCloud();
+  mock.backend.state.contacts = [
+    { id: "11111111-1111-4111-8111-111111111111", date: "2026-10-16", name: "いとう", place: "大阪", occupation: "販売", memo: "紹介" },
+    { id: "22222222-2222-4222-8222-222222222222", date: "2026-10-15", name: "あおき", place: "東京", occupation: "営業", memo: "紹介" },
+    { id: "33333333-3333-4333-8333-333333333333", date: "2026-10-14", name: "うえだ", place: "", occupation: "", memo: "" },
+  ];
+  await mock.install(page.context());
+  await page.setViewportSize({ width: 320, height: 844 });
+  await login(page);
+  await page.getByRole("navigation", { name: "画面の切り替え" }).getByRole("button", { name: "出会い", exact: true }).click();
+  const names = page.locator(".contact-name");
+  await expect(names).toHaveText(["いとう", "あおき", "うえだ"]);
+  await page.getByLabel("並び順", { exact: true }).selectOption("asc");
+  await expect(names).toHaveText(["うえだ", "あおき", "いとう"]);
+  for (const [key, ascending, descending] of [
+    ["place", ["いとう", "あおき", "うえだ"], ["あおき", "いとう", "うえだ"]],
+    ["occupation", ["あおき", "いとう", "うえだ"], ["いとう", "あおき", "うえだ"]],
+    ["name", ["あおき", "いとう", "うえだ"], ["うえだ", "いとう", "あおき"]],
+  ] as const) {
+    await page.getByLabel("並び替え項目").selectOption(key);
+    await expect(names).toHaveText([...ascending]);
+    await page.getByLabel("並び順", { exact: true }).selectOption("desc");
+    await expect(names).toHaveText([...descending]);
+    await page.getByLabel("並び順", { exact: true }).selectOption("asc");
+  }
+  await page.getByLabel("出会いを検索").fill("紹介");
+  await expect(names).toHaveText(["あおき", "いとう"]);
+  expect(mock.backend.writes).toBe(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

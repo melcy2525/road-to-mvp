@@ -64,6 +64,8 @@ export default function Page() {
     [view, setView] = useState("月"),
     [month, setMonth] = useState(""),
     [contactSearch, setContactSearch] = useState(""),
+    [contactSort, setContactSort] = useState<"date" | "place" | "occupation" | "name">("date"),
+    [contactOrder, setContactOrder] = useState<"asc" | "desc">("desc"),
     [loadError, setLoadError] = useState(false);
   const { client, user, logout } = useAuth();
   const repository = useMemo(
@@ -382,6 +384,15 @@ export default function Page() {
       return d;
     },
   );
+  const visibleContacts = [...(data.contacts ?? [])]
+    .filter((person) => [person.name, person.date, person.place, person.occupation, person.memo]
+      .join(" ").toLocaleLowerCase().includes(contactSearch.trim().toLocaleLowerCase()))
+    .sort((a, b) => {
+      const left = a[contactSort].trim(), right = b[contactSort].trim();
+      // Unfilled optional fields stay last in either direction.
+      if (!left || !right) return left ? -1 : right ? 1 : 0;
+      return left.localeCompare(right, "ja", { numeric: true, sensitivity: "base" }) * (contactOrder === "asc" ? 1 : -1);
+    });
   const editButtons = (
     kind: string,
     key: "events" | "meetings" | "reports" | "reviews" | "sales" | "notes" | "contacts",
@@ -1085,12 +1096,21 @@ export default function Page() {
                     <button className="primary" onClick={() => open("出会い")}><Plus size={16} />会った人を記録</button>
                   </div>
                   <label className="contact-search">出会いを検索<input type="search" value={contactSearch} onChange={(e) => setContactSearch(e.target.value)} placeholder="名前・場所・職業・メモで検索" /></label>
+                  <div className="contact-sort-controls">
+                    <label>並び替え項目<select aria-label="並び替え項目" value={contactSort} onChange={(e) => setContactSort(e.target.value as typeof contactSort)}>
+                      <option value="date">会った日</option><option value="place">場所</option><option value="occupation">職業</option><option value="name">名前</option>
+                    </select></label>
+                    <label>並び順<select aria-label="並び順" value={contactOrder} onChange={(e) => setContactOrder(e.target.value as typeof contactOrder)}>
+                      <option value="desc">{contactSort === "date" ? "新しい順" : "降順（逆順）"}</option>
+                      <option value="asc">{contactSort === "date" ? "古い順" : "昇順（文字順）"}</option>
+                    </select></label>
+                  </div>
                   {!data.contacts?.length && <Empty label="今日の出会いを、ここに残しましょう。" action={() => open("出会い")} />}
-                  {!!data.contacts?.length && !(data.contacts ?? []).some((person) => [person.name, person.date, person.place, person.occupation, person.memo].join(" ").toLocaleLowerCase().includes(contactSearch.trim().toLocaleLowerCase())) && <p className="helper">一致する記録がありません。</p>}
+                  {!!data.contacts?.length && !visibleContacts.length && <p className="helper">一致する記録がありません。</p>}
                   <div className="panel contacts-panel">
                     <div className="contacts-list-heading" aria-hidden="true"><span>名前</span><span>会った日</span><span>場所</span><span>職業</span><span>操作</span></div>
                     <ul className="contacts-list" aria-label="出会いの一覧">
-                      {[...(data.contacts ?? [])].filter((person) => [person.name, person.date, person.place, person.occupation, person.memo].join(" ").toLocaleLowerCase().includes(contactSearch.trim().toLocaleLowerCase())).sort((a, b) => b.date.localeCompare(a.date)).map((person) => (
+                      {visibleContacts.map((person) => (
                         <li className="contact-list-item" key={person.id}>
                           <div className="contact-summary">
                             <strong className="contact-name">{person.name}</strong>

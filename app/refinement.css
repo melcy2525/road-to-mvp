@@ -1636,3 +1636,7 @@ body { isolation: isolate; }
   .contact-occupation { grid-column: 2 / 4; grid-row: 3; }
   .contact-summary small { display: inline; font-size: 10px; color: #8495ab; margin-right: 6px; }
 }
+
+.contact-sort-controls { display: flex; flex-wrap: wrap; gap: 12px; margin: -8px 0 20px; }
+.contact-sort-controls label { display: grid; gap: 6px; font-size: 11px; color: #98a9bc; flex: 1 1 140px; max-width: 240px; min-width: 0; }
+.contact-sort-controls select { min-height: 44px; width: 100%; font-size: 13px; }
