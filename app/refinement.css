@@ -1637,6 +1637,14 @@ body { isolation: isolate; }
   .contact-summary small { display: inline; font-size: 10px; color: #8495ab; margin-right: 6px; }
 }
 
-.contact-sort-controls { display: flex; flex-wrap: wrap; gap: 12px; margin: -8px 0 20px; }
-.contact-sort-controls label { display: grid; gap: 6px; font-size: 11px; color: #98a9bc; flex: 1 1 140px; max-width: 240px; min-width: 0; }
-.contact-sort-controls select { min-height: 44px; width: 100%; font-size: 13px; }
+.contact-sort-heading { display: inline-flex; align-items: center; justify-content: flex-start; gap: 6px; min-height: 44px; padding: 0; color: #98a9bc; font-size: 11px; text-align: left; white-space: nowrap; }
+.contact-sort-heading.active { color: #e5c88e; }
+.contact-sort-heading:hover { color: #f2dfb9; }
+.contact-sort-heading:focus-visible { outline: 2px solid #d8bd85; outline-offset: 2px; border-radius: 4px; }
+.contact-sort-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.contacts-list-heading { padding-top: 4px; padding-bottom: 4px; }
+@media (max-width: 1000px) {
+  .contacts-list-heading { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 4px 12px; }
+  .contact-sort-heading { font-size: 10px; gap: 4px; }
+  .contact-actions-label { display: none; }
+}

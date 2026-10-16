@@ -64,18 +64,18 @@ test("会った日・場所・職業・名前で昇降順を切り替え、検�
   await page.getByRole("navigation", { name: "画面の切り替え" }).getByRole("button", { name: "出会い", exact: true }).click();
   const names = page.locator(".contact-name");
   await expect(names).toHaveText(["いとう", "あおき", "うえだ"]);
-  await page.getByLabel("並び順", { exact: true }).selectOption("asc");
+  await page.getByRole("button", { name: "会った日で並び替え", exact: true }).click();
   await expect(names).toHaveText(["うえだ", "あおき", "いとう"]);
   for (const [key, ascending, descending] of [
-    ["place", ["いとう", "あおき", "うえだ"], ["あおき", "いとう", "うえだ"]],
-    ["occupation", ["あおき", "いとう", "うえだ"], ["いとう", "あおき", "うえだ"]],
-    ["name", ["あおき", "いとう", "うえだ"], ["うえだ", "いとう", "あおき"]],
+    ["場所", ["いとう", "あおき", "うえだ"], ["あおき", "いとう", "うえだ"]],
+    ["職業", ["あおき", "いとう", "うえだ"], ["いとう", "あおき", "うえだ"]],
+    ["名前", ["あおき", "いとう", "うえだ"], ["うえだ", "いとう", "あおき"]],
   ] as const) {
-    await page.getByLabel("並び替え項目").selectOption(key);
+    await page.getByRole("button", { name: `${key}で並び替え`, exact: true }).click();
     await expect(names).toHaveText([...ascending]);
-    await page.getByLabel("並び順", { exact: true }).selectOption("desc");
+    await page.getByRole("button", { name: `${key}で並び替え`, exact: true }).click();
     await expect(names).toHaveText([...descending]);
-    await page.getByLabel("並び順", { exact: true }).selectOption("asc");
+    await page.getByRole("button", { name: `${key}で並び替え`, exact: true }).click();
   }
   await page.getByLabel("出会いを検索").fill("紹介");
   await expect(names).toHaveText(["あおき", "いとう"]);
