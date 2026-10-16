@@ -20,6 +20,7 @@ import {
   Pencil,
   Check,
   TrendingUp,
+  NotebookPen,
 } from "lucide-react";
 import {
   Data,
@@ -43,8 +44,9 @@ const tabs = [
   "日報",
   "目標管理",
   "月間振り返り",
+  "メモ",
 ];
-const icons = [Home, CalendarDays, Video, ClipboardList, Target, TrendingUp];
+const icons = [Home, CalendarDays, Video, ClipboardList, Target, TrendingUp, NotebookPen];
 type FormState = { kind: string; values: Record<string, string>; id?: string };
 export default function Page() {
   const [data, setData] = useState<Data>(initialData),
@@ -251,13 +253,13 @@ export default function Page() {
       id,
     });
   function remove(
-    collection: "events" | "meetings" | "reports" | "reviews" | "sales",
+    collection: "events" | "meetings" | "reports" | "reviews" | "sales" | "notes",
     id: string,
   ) {
     if (confirm("このデータを削除しますか？"))
       save({
         ...data,
-        [collection]: data[collection].filter((v) => v.id !== id),
+        [collection]: (data[collection] ?? []).filter((v) => v.id !== id),
       });
   }
   async function submit(e: React.FormEvent<HTMLFormElement>) {
@@ -281,6 +283,11 @@ export default function Page() {
         },
       };
     }
+    if (form.kind === "メモ")
+      next.notes = [
+        ...(data.notes ?? []).filter((x) => x.id !== id),
+        { id, title: v.title.trim() || "無題のメモ", body: v.body.trim(), updatedAt: new Date().toISOString() },
+      ];
     if (form.kind === "予定")
       next.events = [
         ...data.events.filter((x) => x.id !== id),
@@ -366,7 +373,7 @@ export default function Page() {
   );
   const editButtons = (
     kind: string,
-    key: "events" | "meetings" | "reports" | "reviews" | "sales",
+    key: "events" | "meetings" | "reports" | "reviews" | "sales" | "notes",
     item: { id: string },
   ) => (
     <div className="row-actions">
@@ -1068,6 +1075,24 @@ export default function Page() {
                   </section>
                 </>
               )}
+              {tab === "メモ" && (
+                <>
+                  <div className="list-heading">
+                    <div><h2>気づきを、次の力に。</h2><p className="memo-intro">意識したいこと、もらったアドバイス、思いついたこと。自由に書き留めておきましょう。</p></div>
+                    <button className="primary" onClick={() => open("メモ")}><Plus size={16} />メモを書く</button>
+                  </div>
+                  {!data.notes?.length && <Empty label="大切な言葉や気づきを、ここに残しましょう。" action={() => open("メモ")} />}
+                  <div className="cards-grid">
+                    {[...(data.notes ?? [])].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).map((note) => (
+                      <section className="panel record-card memo-card" key={note.id}>
+                        <div className="record-top"><h2>{note.title}</h2>{editButtons("メモ", "notes", note)}</div>
+                        <time dateTime={note.updatedAt}>更新：{new Intl.DateTimeFormat("ja-JP", { timeZone: "Asia/Tokyo", dateStyle: "medium", timeStyle: "short" }).format(new Date(note.updatedAt))}</time>
+                        <p className="memo-body">{note.body}</p>
+                      </section>
+                    ))}
+                  </div>
+                </>
+              )}
               {tab === "月間振り返り" && (
                 <>
                   <div className="list-heading">
@@ -1141,7 +1166,7 @@ export default function Page() {
             >
               <Icon size={20} />
               <span>
-                {["ホーム", "予定", "Zoom", "日報", "目標", "振り返り"][i]}
+                {["ホーム", "予定", "Zoom", "日報", "目標", "振り返り", "メモ"][i]}
               </span>
             </button>
           );
@@ -1178,6 +1203,12 @@ export default function Page() {
                     data={data}
                     month={form.values.goalMonth || month}
                   />
+                ) : form.kind === "メモ" ? (
+                  <>
+                    <label>タイトル（任意）<input name="title" maxLength={200} defaultValue={form.values.title} placeholder="例：商談で意識すること" /></label>
+                    <label>メモの内容<textarea className="memo-editor" name="body" required maxLength={20000} defaultValue={form.values.body} placeholder="もらったアドバイスや気づきを、自由に書いてください。" /></label>
+                    <p className="memo-intro">保存すると、iPhone・PCの両方から確認できます。</p>
+                  </>
                 ) : (
                   <>
                     {form.kind === "振り返り" ? (
@@ -1295,16 +1326,17 @@ export default function Page() {
                             日報: "reports",
                             振り返り: "reviews",
                             売上: "sales",
+                            メモ: "notes",
                           } as const
                         )[
                           form.kind as
-                            "予定" | "Zoom" | "日報" | "振り返り" | "売上"
+                            "予定" | "Zoom" | "日報" | "振り返り" | "売上" | "メモ"
                         ];
                         if (
                           confirm("このデータを削除しますか？") &&
                           (await save({
                             ...data,
-                            [key]: data[key].filter((x) => x.id !== form.id),
+                            [key]: (data[key] ?? []).filter((x) => x.id !== form.id),
                           }))
                         )
                           setForm(null);

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { mockCloud, login } from "./helpers/supabase";
-test("モバイルの下部メニューで6画面に移動でき、狭い画面でも操作できる", async ({
+test("モバイルの下部メニューで7画面に移動でき、狭い画面でも操作できる", async ({
   page,
 }, info) => {
   const mock = mockCloud();
@@ -18,7 +18,7 @@ test("モバイルの下部メニューで6画面に移動でき、狭い画面�
   await login(page);
   const dock = page.getByRole("navigation", { name: "画面の切り替え" });
   await expect(dock).toBeVisible();
-  await expect(dock.getByRole("button")).toHaveCount(6);
+  await expect(dock.getByRole("button")).toHaveCount(7);
   await page.screenshot({
     path: info.outputPath("home-mobile.png"),
     fullPage: true,
@@ -33,6 +33,7 @@ test("モバイルの下部メニューで6画面に移動でき、狭い画面�
       "日報",
       "目標管理",
       "月間振り返り",
+      "メモ",
     ]) {
       await dock.getByRole("button", { name, exact: true }).click();
       await expect(

@@ -91,7 +91,7 @@ export default function LegacyImport({
           <p>
             予定 {candidate.events.length}件 / 日報 {candidate.reports.length}件
             / 売上 {candidate.sales.length}件 / 会議 {candidate.meetings.length}
-            件 / 振り返り {candidate.reviews.length}件
+            件 / 振り返り {candidate.reviews.length}件 / メモ {candidate.notes?.length ?? 0}件
           </p>
           <p>
             一致するID・日報の日付・振り返りの月はクラウド側を優先します。目標はクラウドが初期状態の場合だけ移行します。同じデータを再移行しても売上は二重登録されません。

@@ -859,7 +859,7 @@ input[readonly] {
   }
   .mobile-dock {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     position: fixed;
     left: 14px;
     right: 14px;
@@ -1494,3 +1494,10 @@ input[readonly] {
   gap: 4px;
   text-align: left;
 }
+
+.memo-intro { color: var(--muted, #a6b6ce); font-size: 13px; line-height: 1.8; margin: 8px 0; }
+.memo-card { min-width: 0; }
+.memo-card h2 { overflow-wrap: anywhere; }
+.memo-card time { color: #91a0b5; font-size: 11px; }
+.memo-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.9; font-size: 14px; margin-top: 20px; }
+textarea.memo-editor { min-height: 260px; line-height: 1.8; }
