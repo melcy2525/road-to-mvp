@@ -1,5 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./refinement.css";
+export const viewport: Viewport = {
+  themeColor: "#090f19",
+  viewportFit: "cover",
+};
 export const metadata: Metadata = {
   title: "ROAD TO MVP | 営業管理",
   description:

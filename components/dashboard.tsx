@@ -416,6 +416,7 @@ export default function Page() {
               <button
                 key={name}
                 className={tab === name ? "nav-item active" : "nav-item"}
+                aria-current={tab === name ? "page" : undefined}
                 onClick={() => go(name)}
               >
                 <Icon size={19} />
@@ -540,7 +541,7 @@ export default function Page() {
                           <span>年間売上目標</span>
                         </div>
                       </div>
-                      <div className="hero-emblem">
+                      <div className="hero-emblem" aria-hidden="true">
                         <Trophy strokeWidth={1} size={100} />
                         <span>MAKE IT HAPPEN</span>
                       </div>
@@ -954,7 +955,7 @@ export default function Page() {
                       目標を編集
                     </button>
                   </div>
-                  <div className="stats-grid">
+                  <div className="stats-grid goal-stats">
                     <section className="stat">
                       <div className="stat-label">
                         年間売上目標
@@ -1086,6 +1087,25 @@ export default function Page() {
           </footer>
         </main>
       </div>
+      <nav className="mobile-dock" aria-label="画面の切り替え">
+        {tabs.map((name, i) => {
+          const Icon = icons[i];
+          return (
+            <button
+              key={name}
+              aria-label={name}
+              aria-current={tab === name ? "page" : undefined}
+              className={tab === name ? "dock-item selected" : "dock-item"}
+              onClick={() => go(name)}
+            >
+              <Icon size={20} />
+              <span>
+                {["ホーム", "予定", "Zoom", "日報", "目標", "振り返り"][i]}
+              </span>
+            </button>
+          );
+        })}
+      </nav>
       {notice && (
         <div role="status" className="toast">
           <Check size={16} />

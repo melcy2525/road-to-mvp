@@ -5,7 +5,10 @@ const nav = async (p: Page, name: string) => {
     await p.getByRole("button", { name: "メニュー", exact: true }).isVisible()
   )
     await p.getByRole("button", { name: "メニュー", exact: true }).click();
-  await p.locator("nav").getByRole("button", { name, exact: true }).click();
+  await p
+    .locator(".sidebar nav")
+    .getByRole("button", { name, exact: true })
+    .click();
 };
 const submit = async (p: Page) => {
   await p.getByRole("button", { name: "保存する", exact: true }).click();

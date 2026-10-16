@@ -33,7 +33,7 @@ test("iPhoneでZoom自動発行し、クラウド再読み込み後もリンク�
   await login(page);
   await page.getByRole("button", { name: "メニュー", exact: true }).click();
   await page
-    .locator("nav")
+    .locator(".sidebar nav")
     .getByRole("button", { name: "Zoom管理", exact: true })
     .click();
   await page
@@ -101,7 +101,7 @@ test("クラウド保存だけを同じIDで再試行し、会議を再発行し
   });
   await login(page);
   await page
-    .locator("nav")
+    .locator(".sidebar nav")
     .getByRole("button", { name: "Zoom管理", exact: true })
     .click();
   await page
@@ -169,7 +169,7 @@ test("前回発行済みで保存待ちのリンクは次のログイン時に�
   );
   await login(page);
   await page
-    .locator("nav")
+    .locator(".sidebar nav")
     .getByRole("button", { name: "Zoom管理", exact: true })
     .click();
   await expect(page.locator(".record-card")).toContainText(
@@ -221,7 +221,7 @@ test("Zoomがホーム・日週月に表示され、編集・削除が連動す�
   );
   await page.getByRole("button", { name: "キャンセル", exact: true }).click();
   await page
-    .locator("nav")
+    .locator(".sidebar nav")
     .getByRole("button", { name: "スケジュール", exact: true })
     .click();
   for (const view of ["日", "週", "月"]) {
@@ -244,7 +244,7 @@ test("Zoomがホーム・日週月に表示され、編集・削除が連動す�
   expect(mock.backend.state.events).toHaveLength(0);
   await page.reload();
   await page
-    .locator("nav")
+    .locator(".sidebar nav")
     .getByRole("button", { name: "スケジュール", exact: true })
     .click();
   await expect(page.locator(".calendar-event")).toHaveCount(1);
