@@ -1,5 +1,9 @@
 import { z } from "zod";
+export const eventColors = ["gold", "blue", "green", "purple", "rose"] as const;
+export type EventColor = (typeof eventColors)[number];
 export type Event = {
+  color?: EventColor;
+  url?: string;
   id: string;
   date: string;
   time: string;
@@ -7,6 +11,7 @@ export type Event = {
   type: string;
 };
 export type Meeting = {
+  color?: EventColor;
   startsAt?: string;
   duration?: number;
   timezone?: string;
@@ -91,7 +96,7 @@ export const dataSchema = z.object({
   annual: money.positive(),
   monthly: money.positive(),
   events: z
-    .array(z.object({ id, date, time, title: text, type: text }))
+    .array(z.object({ id, date, time, title: text, type: text, color: z.enum(eventColors).optional(), url: z.url().startsWith("https://").max(2048).optional() }))
     .max(10000),
   meetings: z
     .array(
@@ -103,6 +108,7 @@ export const dataSchema = z.object({
         url: z.url().startsWith("https://").max(2048),
         duration: z.number().int().positive().optional(),
         timezone: z.string().optional(),
+        color: z.enum(eventColors).optional(),
         startsAt: z.iso.datetime({ offset: true }).optional(),
         memo: text,
       }),
@@ -186,6 +192,8 @@ export function scheduleEvents(data: Data): ScheduleEvent[] {
     ...data.meetings.map((meeting) => ({
       id: "zoom-" + meeting.id,
       meetingId: meeting.id,
+      color: meeting.color ?? "blue",
+      url: meeting.url,
       date: meeting.date,
       time: meeting.time,
       title: meeting.title,

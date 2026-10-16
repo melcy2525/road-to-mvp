@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import {
   Data,
+  EventColor,
+  eventColors,
   dateKey,
   initialData,
   mergeLegacy,
@@ -291,7 +293,7 @@ export default function Page() {
     if (form.kind === "予定")
       next.events = [
         ...data.events.filter((x) => x.id !== id),
-        { id, date: v.date, time: v.time, title: v.title, type: v.type },
+        { id, date: v.date, time: v.time, title: v.title, type: v.type, color: v.color as EventColor, url: v.url.trim() || undefined },
       ];
     if (form.kind === "Zoom")
       next.meetings = [
@@ -303,6 +305,7 @@ export default function Page() {
           time: v.time,
           title: v.title,
           url: v.url,
+          color: v.color as EventColor,
           memo: v.memo,
         },
       ];
@@ -659,11 +662,12 @@ export default function Page() {
                       </div>
                       {dayEvents.length ? (
                         dayEvents.map((e) => (
-                          <div className="event-row" key={e.id}>
+                          <div className="event-row" data-color={e.color ?? "gold"} key={e.id}>
                             <time>{e.time}</time>
                             <div>
                               <strong>{e.title}</strong>
-                              <small>{e.type}</small>
+                              <small>{e.meetingId ? "Zoom管理" : "予定"} · {e.type}</small>
+                              {e.url && <a className="event-link" href={e.url} target="_blank" rel="noopener noreferrer">会議リンクを開く ↗</a>}
                             </div>
                             {e.meetingId
                               ? editButtons(
@@ -821,6 +825,7 @@ export default function Page() {
                             .map((e) => (
                               <button
                                 className="calendar-event"
+                                data-color={e.color ?? "gold"}
                                 key={e.id}
                                 onClick={() => {
                                   const meeting = e.meetingId
@@ -842,7 +847,7 @@ export default function Page() {
                                 }}
                               >
                                 <time>{e.time}</time>{" "}
-                                {e.meetingId ? "Zoom · " : ""}
+                                {e.meetingId ? "Zoom · " : "予定 · "}
                                 {e.title}
                               </button>
                             ))}
@@ -851,6 +856,7 @@ export default function Page() {
                     })}
                   </div>
                   <p className="helper">
+                    <span className="schedule-legend"><span data-color="gold">● 予定の標準色</span><span data-color="blue">● Zoom管理の標準色</span></span>
                     日付を押すと追加、予定を押すと編集・削除できます。Zoom管理の会議も自動表示します。
                   </p>
                 </section>
@@ -1243,7 +1249,19 @@ export default function Page() {
                         value={form.values.title}
                       />
                     )}
+                    {["予定", "Zoom"].includes(form.kind) && (
+                      <label>予定の色
+                        <select name="color" defaultValue={form.values.color || (form.kind === "Zoom" ? "blue" : "gold")}>
+                          {eventColors.map((color, i) => <option key={color} value={color}>{["ゴールド", "ブルー", "グリーン", "パープル", "ピンク"][i]}</option>)}
+                        </select>
+                      </label>
+                    )}
                     {form.kind === "予定" && (
+                      <>
+                      <label>相手からの会議リンク（任意）
+                        <input name="url" type="url" pattern="https://.*" maxLength={2048} defaultValue={form.values.url} placeholder="https://zoom.us/j/…" />
+                      </label>
+                      {form.values.url && <a className="event-link" href={form.values.url} target="_blank" rel="noopener noreferrer">会議リンクを開く ↗</a>}
                       <label>
                         予定の種類
                         <select
@@ -1257,6 +1275,7 @@ export default function Page() {
                           )}
                         </select>
                       </label>
+                      </>
                     )}
                     {form.kind === "Zoom" && (
                       <>

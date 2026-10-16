@@ -1501,3 +1501,16 @@ input[readonly] {
 .memo-card time { color: #91a0b5; font-size: 11px; }
 .memo-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.9; font-size: 14px; margin-top: 20px; }
 textarea.memo-editor { min-height: 260px; line-height: 1.8; }
+
+[data-color="gold"] { --event-color: #dfbd72; --event-bg: #dfbd721c; }
+[data-color="blue"] { --event-color: #87bcff; --event-bg: #87bcff20; }
+[data-color="green"] { --event-color: #7cdec0; --event-bg: #7cdec01c; }
+[data-color="purple"] { --event-color: #c3a3ff; --event-bg: #c3a3ff20; }
+[data-color="rose"] { --event-color: #ffa3c2; --event-bg: #ffa3c21c; }
+.calendar-event[data-color] { color: var(--event-color); background: var(--event-bg); border-left: 3px solid var(--event-color); }
+.calendar-event[data-color]:hover { filter: brightness(1.2); }
+.event-row[data-color] { border-left: 3px solid var(--event-color); padding-left: 12px; }
+.event-row[data-color] time { color: var(--event-color); }
+.event-link { display: inline-block; color: #87bcff; font-size: 12px; padding: 8px 0; overflow-wrap: anywhere; }
+.schedule-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 8px; }
+.schedule-legend span { color: var(--event-color); }
